@@ -1,11 +1,11 @@
-package lib.sbet;
+package lib.sbet.xlsx;
 
 import junit.framework.TestSuite;
 import org.junit.*;
 
 import static org.junit.Assert.assertTrue;
 
-public class AppTest 
+public class XlsxSbetReaderTest
 {
 
     @Test
