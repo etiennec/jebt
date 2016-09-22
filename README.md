@@ -2,7 +2,7 @@
 Simplistic Bidirectional Excel Templating
 
 SBET is inspired from Excel templating libraries such as JETT or JXLS, but simplify them drastically in order to allow generating back the data from a filled excel file obeying the template structure.
-t sIf you're looking for fancy scripting language and advanced dynamic formatting in your template, this is not the library you're looking for.
+If you're looking for fancy scripting language and advanced dynamic formatting in your template, this is not the library you're looking for.
 
 SBET is:
 - Bidirectional: Template XSLX + Data = XLSX filled with Data, and Template XLSX + XLSX filled with Data = Data
