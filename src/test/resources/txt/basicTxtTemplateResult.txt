@@ -1,0 +1,9 @@
+Sbet supports single properties.
+Hello World!
+
+Sbet supports property chain, indexed properties, and mapped properties.
+The postal code of the third customer is 200093.
+
+
+
+
