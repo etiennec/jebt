@@ -14,12 +14,20 @@ public abstract class BaseSbetWriter implements SbetWriter{
      * @return the output string, with all templating elements evaluated using the passed data.
      */
     public String convertString(String input, Map<String, Object> data) {
+        String expression;
+        while ((expression = getFirstExpression(input)) != null)  {
+                input = input.replace(expression, evaluateExpression(expression, data));
+        }
+        return input;
+    }
+
+    public String getFirstExpression(String input) {
         // TODO
     }
 
     /**
      *
-     * @param expression a Sbet expression (~ BeanUtils expression)
+     * @param expression a Sbet expression (~ BeanUtils expression), with the enclosing curly braces
      * @param data the data to use to evaluate the expression
      * @return the evaluated expression, or an empty String if there's a null value along the path.
      */
