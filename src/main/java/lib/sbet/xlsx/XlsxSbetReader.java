@@ -12,4 +12,8 @@ public class XlsxSbetReader<T> implements SbetReader<T>
     public Map<String, T> readData() {
         return null;
     }
+
+    public void setClass(String beanName, Class clazz) {
+        // TODO
+    }
 }

@@ -8,7 +8,7 @@ import java.io.Writer;
 import java.util.Map;
 
 /**
- * Simple Implementation of {@link SbetWriter} for plain old text.
+ * Simple Implementation of {@link SbetWriter} for plain old text files.
  */
 public class TxtSbetWriter extends BaseSbetWriter {
 
@@ -17,7 +17,7 @@ public class TxtSbetWriter extends BaseSbetWriter {
     private Writer outputWriter;
 
     public void writeData(Map<String, Object> data) {
-         // TODO
+        convertString(templateReader, outputWriter, data);
     }
 
     public void setTemplateReader(Reader templateReader) {
