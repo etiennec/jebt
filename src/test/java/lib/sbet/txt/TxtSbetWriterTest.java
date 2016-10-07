@@ -35,13 +35,14 @@ public class TxtSbetWriterTest implements TestConstants
     private void testTxtTemplate(String templateName, Map<String, Object> data) throws IOException {
         System.out.println("## Testing template name "+templateName);
 
-        TxtSbetWriter writer = new TxtSbetWriter();
+
 
         Reader templateReader = TestUtils.getFileReader("/txt/"+templateName+TXT_TEMPLATE_FILE_SUFFIX);
-        writer.setTemplateReader(templateReader);
 
         StringWriter output = new StringWriter();
-        writer.setOutputWriter(output);
+
+        TxtSbetWriter writer = new TxtSbetWriter(templateReader, output);
+
         writer.writeData(data);
 
         String actualResult = output.toString();

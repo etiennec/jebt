@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class XlsxSbetReader<T> implements SbetReader<T>
 {
-    public Map<String, T> readData() {
+    public Map<String, Object> readData() {
         return null;
     }
 

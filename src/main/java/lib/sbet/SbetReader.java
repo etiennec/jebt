@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public interface SbetReader<T> {
 
-    public Map<String, T> readData();
+    public Map<String, Object> readData();
 
     public void setClass(String beanName, Class clazz);
 

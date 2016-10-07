@@ -1,5 +1,6 @@
 package lib.sbet;
 
+import lib.sbet.parser.SbetTextProcessor;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -15,10 +16,7 @@ public class SbetTemplateEvaluationTest
     @Test
     public void testTemplateExpressionEvaluation()
     {
-        BaseSbetWriter baseWriter = new BaseSbetWriter() {
-            public void writeData(Map<String, Object> data) {
-            }
-        };
+        SbetTextProcessor parser = new SbetTextProcessor();
 
         Map<String, Object> data = new HashMap<String, Object>();
 
@@ -39,23 +37,23 @@ public class SbetTemplateEvaluationTest
 
 
         // We don't care about spaces in the expression
-        assertEquals("bar", baseWriter.evaluateExpression("{{foo}}", data));
-        assertEquals("bar", baseWriter.evaluateExpression("{{ foo }}", data));
-        assertEquals("bar", baseWriter.evaluateExpression("{{foo }}", data));
-        assertEquals("bar", baseWriter.evaluateExpression("{{ foo}}", data));
+        assertEquals("bar", parser.evaluateExpression("foo", data));
+        assertEquals("bar", parser.evaluateExpression(" foo ", data));
+        assertEquals("bar", parser.evaluateExpression("foo ", data));
+        assertEquals("bar", parser.evaluateExpression(" foo", data));
 
         // Indexed access
-        assertEquals("red", baseWriter.evaluateExpression("{{colorsList[0]}}", data));
-        assertEquals("green", baseWriter.evaluateExpression("{{colorsList[1]}}", data));
-        assertEquals("blue", baseWriter.evaluateExpression("{{colorsList[2]}}", data));
-        assertEquals("red", baseWriter.evaluateExpression("{{colorsArray[0]}}", data));
-        assertEquals("green", baseWriter.evaluateExpression("{{colorsArray[1]}}", data));
-        assertEquals("blue", baseWriter.evaluateExpression("{{colorsArray[2]}}", data));
+        assertEquals("red", parser.evaluateExpression("colorsList[0]", data));
+        assertEquals("green", parser.evaluateExpression("colorsList[1]", data));
+        assertEquals("blue", parser.evaluateExpression("colorsList[2]", data));
+        assertEquals("red", parser.evaluateExpression("colorsArray[0]", data));
+        assertEquals("green", parser.evaluateExpression("colorsArray[1]", data));
+        assertEquals("blue", parser.evaluateExpression("colorsArray[2]", data));
 
         // property chain
-        assertEquals("123", baseWriter.evaluateExpression("{{addresses[0].number}}", data));
-        assertEquals("Main Boulevard", baseWriter.evaluateExpression("{{addresses[0].streetName}}", data));
-        assertEquals("200093", baseWriter.evaluateExpression("{{addresses[0].postalCode}}", data));
+        assertEquals("123", parser.evaluateExpression("addresses[0].number", data));
+        assertEquals("Main Boulevard", parser.evaluateExpression("addresses[0].streetName", data));
+        assertEquals("200093", parser.evaluateExpression("addresses[0].postalCode", data));
     }
 
     public class Address {
