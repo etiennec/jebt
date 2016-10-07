@@ -3,6 +3,7 @@ package lib.sbet;
 import lib.sbet.parser.SbetTextProcessor;
 
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +13,7 @@ import java.util.Map;
 public abstract class BaseSbetReader<T> implements SbetReader<T>
 {
 
-    private SbetTextProcessor parser = new SbetTextProcessor();
+    private SbetTextProcessor textProcessor = new SbetTextProcessor();
 
     private Map<String, Class> classesPerBeanName = new HashMap<String, Class>();
 
@@ -20,13 +21,27 @@ public abstract class BaseSbetReader<T> implements SbetReader<T>
         classesPerBeanName.put(beanName, clazz);
     }
 
+    /**
+     * Method to call when there's no existing data Map to use as starting data.
+     */
     public Map<String, Object> extractData(Reader templateReader, Reader documentReader) {
-
         Map<String, Object> data = new HashMap<String, Object>();
-
-        parser.extractData(templateReader, documentReader, data);
-
+        this.extractData(templateReader, documentReader, data);
         return data;
+    }
+
+    /**
+     * This method will edit/insert data in the passed data Map.
+     */
+    public void extractData(Reader templateReader, Reader documentReader, Map<String, Object> data) {
+        textProcessor.extractData(templateReader, documentReader, data);
+    }
+
+    /**
+     * Method to use when the template & document text are already available as String (watch out for memory consumption, prefer to use Readers if possible).
+     */
+    public void extractData(String templateText, String documentText, Map<String, Object> data) {
+        this.extractData(new StringReader(templateText), new StringReader(documentText), data);
     }
 
 

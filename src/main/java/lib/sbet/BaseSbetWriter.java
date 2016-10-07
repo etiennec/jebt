@@ -39,5 +39,4 @@ public abstract class BaseSbetWriter implements SbetWriter{
         textProcessor.convertString(sourceText, outText, data);
     }
 
-
 }
