@@ -192,8 +192,52 @@ public class SbetTextProcessor {
     }
 
     private void updateData(String expression, String value, Map<String, Object> data) {
-        System.out.println("Updating {{" + expression + "}} with value '" + value +"'");
-        // TODO
+
+        if (StringUtils.isBlank(expression)) {
+            return;
+        }
+
+        expression = expression.trim();
+
+        String[] elements = StringUtils.split(expression, '.');
+
+        final String key = getLeadingText(elements[0]);
+
+        if (elements.length == 1 && key.equals(elements[0])) {
+            // We're directly setting the value in the data map.
+            data.put(elements[0], value);
+            return;
+        }
+
+        Object obj = data.get(key);
+
+        if (obj == null) {
+            // TODO instantiate the object.
+            obj = instantiateObject(T);
+            if (obj == null) {
+                // cannot instantiate, so we don't do anything. Logging later?
+                return;
+            }
+            data.put(key, obj);
+        }
+
+        String remainingExpr = elements[0].substring(key.length());
+
+        // TODO refactor to allow defining types to instantiate with factories and SbetReader#setClass. Also allow to decide behavior upon instantiation failure (ignore / throw exception)
+
+        // TODO climb up the expression ladder until the very last expression, instantiating null objects as we go up.
+        // Use the very last expression to assign the value.
+
+        if (bean == null) {
+            return getNullResult();
+        }
+
+        for (int i = 1 ;  i < elements.length ; i++) {
+            bean = evaluateBetweenTheDotsExpression(bean, elements[i].trim());
+            if (bean == null) {
+                return "";
+            }
+        }
     }
 
     /**
@@ -209,7 +253,7 @@ public class SbetTextProcessor {
     /** Evaluates a single expression, i.e. what's between the dots. It can be:
      * <ul>
      *     <li>A simple property</li>
-     *     <li>If ending with (), A method (usually a getter, but not only)</li>
+     *     <li>If ending with (), A method (usually a getter, but not only)</li
      *     <li>If ending with [index], an indexed value, working on both Array, List, or Iterable</li>
      *     <li>If ending with (key), a mapped value</li>
      * </ul>
