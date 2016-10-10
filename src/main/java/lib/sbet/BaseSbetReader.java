@@ -1,6 +1,7 @@
 package lib.sbet;
 
-import lib.sbet.parser.SbetTextProcessor;
+import lib.sbet.parser.SbetCommonTextProcessor;
+import lib.sbet.parser.SbetReaderTextProcessor;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -12,13 +13,18 @@ import java.util.Map;
  */
 public abstract class BaseSbetReader<T> implements SbetReader<T>
 {
-
-    private SbetTextProcessor textProcessor = new SbetTextProcessor();
-
     private Map<String, Class> classesPerBeanName = new HashMap<String, Class>();
 
+    private Class defaultClass = null;
+
+    @Override
     public void setClass(String beanName, Class clazz) {
         classesPerBeanName.put(beanName, clazz);
+    }
+
+    @Override
+    public void setDefaultClass(Class clazz) {
+        this.defaultClass = clazz;
     }
 
     /**
@@ -34,7 +40,12 @@ public abstract class BaseSbetReader<T> implements SbetReader<T>
      * This method will edit/insert data in the passed data Map.
      */
     public void extractData(Reader templateReader, Reader documentReader, Map<String, Object> data) {
-        textProcessor.extractData(templateReader, documentReader, data);
+        SbetReaderTextProcessor textReaderProcessor = new SbetReaderTextProcessor();
+        if (defaultClass != null) {
+            textReaderProcessor.setDefaultClassToInstantiate(defaultClass);
+        }
+        textReaderProcessor.setClasses(classesPerBeanName);
+        textReaderProcessor.extractData(templateReader, documentReader, data);
     }
 
     /**

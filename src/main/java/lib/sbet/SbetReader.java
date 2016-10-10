@@ -12,4 +12,5 @@ public interface SbetReader<T> {
 
     public void setClass(String beanName, Class clazz);
 
+    public void setDefaultClass(Class clazz);
 }

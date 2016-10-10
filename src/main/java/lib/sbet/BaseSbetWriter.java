@@ -1,6 +1,6 @@
 package lib.sbet;
 
-import lib.sbet.parser.SbetTextProcessor;
+import lib.sbet.parser.SbetWriterTextProcessor;
 
 import java.io.*;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.Map;
 public abstract class BaseSbetWriter implements SbetWriter{
 
 
-    private SbetTextProcessor textProcessor = new SbetTextProcessor();
+    private SbetWriterTextProcessor textWriterProcessor = new SbetWriterTextProcessor();
 
     /**
      *
@@ -36,7 +36,7 @@ public abstract class BaseSbetWriter implements SbetWriter{
      * @param data Data to use when filling template elements.
      */
     public void convertString(Reader sourceText, Writer outText, Map<String, Object> data) {
-        textProcessor.convertString(sourceText, outText, data);
+        textWriterProcessor.convertString(sourceText, outText, data);
     }
 
 }
