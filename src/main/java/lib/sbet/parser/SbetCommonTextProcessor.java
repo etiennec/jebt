@@ -56,6 +56,18 @@ public abstract class SbetCommonTextProcessor {
                 final int index = Integer.parseInt(indexStr);
                 currentPath += "["+indexStr+"]";
                 exprs.add(new AtomicExpression() {
+
+                    @Override
+                    public void set(Object bean, Object value) throws Exception {
+                        if (bean.getClass().isArray()) {
+                            Array.set(bean, index, value);
+                        } else if (bean instanceof List) {
+                            ((List) bean).set(index, value);
+                        } else if (bean instanceof Iterable) {
+                           throw new RuntimeException("Iterables can only be read, not set");
+                        }
+                    }
+
                     @Override
                     protected Object doResolve(Object obj) throws Exception {
                         if (obj.getClass().isArray()) {
@@ -83,6 +95,11 @@ public abstract class SbetCommonTextProcessor {
                 currentPath += "("+key+")";
                 exprs.add(new AtomicExpression() {
                     @Override
+                    public void set(Object bean, Object value) throws Exception {
+                        ((java.util.Map) bean).put(key, value);
+                    }
+
+                    @Override
                     protected Object doResolve(Object obj) throws Exception {
                         return ((java.util.Map<?, ?>) obj).get(key);
                     }
@@ -94,6 +111,17 @@ public abstract class SbetCommonTextProcessor {
                 currentPath += token+"()";
                 exprs.add(new AtomicExpression() {
                     @Override
+                    public void set(Object bean, Object value) throws Exception{
+                        // We expect the method to be a getter, and we replace it as a setter.
+                        if (!token.startsWith("get")) {
+                            throw new RuntimeException("Method "+token+" is not a getter and cannot be replaced by a setter to assign value");
+                        }
+                        String setterMethod = "set"+token.substring(3);
+
+                        MethodUtils.invokeMethod(bean, token, value);
+                    }
+
+                    @Override
                     protected Object doResolve(Object obj) throws Exception {
                         return MethodUtils.invokeMethod(obj, token, null); // we only support parameterless invocation().
                     }
@@ -104,6 +132,18 @@ public abstract class SbetCommonTextProcessor {
                 final String token = getLeadingText(expression);
                 currentPath += token;
                 exprs.add(new AtomicExpression() {
+
+                    @Override
+                    public void set(Object bean, Object value) throws Exception {
+                        try {
+                            BeanUtils.setProperty(bean, token, value);
+                        } catch (Exception e) {
+                            // If BeanUtils cannot find the setter, we will try to set the field ; we'll only set it if it's public.
+                            Field field = bean.getClass().getDeclaredField(token);
+                            field.set(bean, value);
+                        }
+                    }
+
                     @Override
                     protected Object doResolve(Object obj) throws Exception {
                         try {
@@ -152,7 +192,7 @@ public abstract class SbetCommonTextProcessor {
         }
 
         // Set the value to the bean according to the atomic expression.
-        public abstract void set(Object bean, Object value);
+        public abstract void set(Object bean, Object value) throws Exception;
 
         // Apply the atomic expression to the passed parent bean to retrieve the child bean.
         protected abstract Object doResolve(Object bean) throws Exception;

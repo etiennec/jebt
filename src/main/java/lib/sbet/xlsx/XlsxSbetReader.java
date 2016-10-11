@@ -16,4 +16,9 @@ public class XlsxSbetReader<T> implements SbetReader<T>
     public void setClass(String beanName, Class clazz) {
         // TODO
     }
+
+    @Override
+    public void setDefaultClass(Class clazz) {
+        // TODO
+    }
 }

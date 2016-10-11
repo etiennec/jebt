@@ -9,7 +9,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class SbetTextProcessorTest
+public class SbetTextWriterProcessorTest
 {
 
     @Test

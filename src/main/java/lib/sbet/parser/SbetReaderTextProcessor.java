@@ -170,23 +170,27 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
         AtomicExpression lastExpression = atomicExprs.remove(atomicExprs.size() -1);
 
 
-        // climb up the expression ladder until the very last expression, instantiating null objects as we go up.
-        for (AtomicExpression atomicExpr : atomicExprs) {
-            bean = atomicExpr.resolve(bean);
-            if (bean == null) {
-                Object childBean = instantiateObject(atomicExpr.getPath());
-                if (childBean == null) {
-                    // We failed to instantiate the object and ignore failures (otherwise we would have got an exception by now).
-                    return;
+        try {
+            // climb up the expression ladder until the very last expression, instantiating null objects as we go up.
+            for (AtomicExpression atomicExpr : atomicExprs) {
+                bean = atomicExpr.resolve(bean);
+                if (bean == null) {
+                    Object childBean = instantiateObject(atomicExpr.getPath());
+                    if (childBean == null) {
+                        // We failed to instantiate the object and ignore failures (otherwise we would have got an exception by now).
+                        return;
+                    }
+                    atomicExpr.set(bean, childBean);
+                    bean = childBean;
                 }
-                atomicExpr.set(bean, childBean);
-                bean = childBean;
             }
+
+            // Use the very last expression to assign the value.
+            lastExpression.set(bean, value);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        // Use the very last expression to assign the value.
-        lastExpression.set(bean, value);
-
 
     }
 

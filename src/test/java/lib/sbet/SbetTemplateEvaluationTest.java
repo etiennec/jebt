@@ -1,6 +1,7 @@
 package lib.sbet;
 
 import lib.sbet.parser.SbetCommonTextProcessor;
+import lib.sbet.parser.SbetWriterTextProcessor;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -16,7 +17,7 @@ public class SbetTemplateEvaluationTest
     @Test
     public void testTemplateExpressionEvaluation()
     {
-        SbetCommonTextProcessor parser = new SbetCommonTextProcessor();
+        SbetWriterTextProcessor parser = new SbetWriterTextProcessor();
 
         Map<String, Object> data = new HashMap<String, Object>();
 
