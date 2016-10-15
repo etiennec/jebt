@@ -1,6 +1,7 @@
 package lib.sbet;
 
 import lib.sbet.parser.SbetReaderTextProcessor;
+import lib.sbet.txt.TxtSbetWriterTest;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -40,5 +41,49 @@ public class SbetTextReaderProcessorTest
         reader.setClass("myNumber", Double.class);
         reader.extractData("This {{myNumber}} is delicious!", "This 3.1416 is delicious!", data);
         assertEquals(new Double(3.1416d), data.get("myNumber"));
+
+        // Try to set a value in an existing array
+        data.put("myArray", new String[] {"Hello", "Jim"});
+        assertEquals("Jim", ((String[])data.get("myArray"))[1]);
+        reader.extractData("Hi {{myArray[1]}}", "Hi Jack", data);
+        assertEquals("Jack", ((String[])data.get("myArray"))[1]);
+
+        // Try to set a value in an existing map
+        Map myMap = new HashMap();
+        myMap.put("foo", "bar");
+        data.put("myMap", myMap);
+        assertEquals("bar", myMap.get("foo"));
+        reader.extractData("Hi {{myMap(foo)}}", "Hi Barry", data);
+        assertEquals("Barry",  myMap.get("foo"));
+
+        // Nested Instantiation & Factories
+        reader.setClass("theMap", java.util.HashMap.class);
+        reader.setFactory("theMap(customer)", new Factory() {
+                    @Override
+                    public Object createObject() {
+                        SbetTextReaderProcessorTest parentClass = new SbetTextReaderProcessorTest();
+                        Customer c = parentClass.new Customer();
+                        return c;
+                    }
+                });
+        assertEquals(null, data.get("theMap"));
+        reader.extractData("Hi {{theMap(customer).name}}", "Hi Barry", data);
+        assertEquals("Barry",  ((Customer)((Map)data.get("theMap")).get("customer")).name);
+    }
+
+    public class Customer {
+
+        public Customer() {};
+
+        public Customer(String name) {
+            this.name = name;
+        }
+
+        public String name = "test";
+        public Address address = new Address();
+    }
+
+    public class Address {
+        public Map<String, String> fields = new HashMap<String, String>();
     }
 }

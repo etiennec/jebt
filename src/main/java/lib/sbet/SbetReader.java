@@ -13,5 +13,7 @@ public interface SbetReader {
 
     public void setClass(String beanPath, Class clazz);
 
+    public void setFactory(String beanPath, Factory factory);
+
     public void setDefaultClass(Class clazz);
 }

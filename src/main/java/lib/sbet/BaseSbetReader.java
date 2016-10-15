@@ -1,6 +1,5 @@
 package lib.sbet;
 
-import lib.sbet.parser.SbetCommonTextProcessor;
 import lib.sbet.parser.SbetReaderTextProcessor;
 
 import java.io.Reader;
@@ -13,13 +12,20 @@ import java.util.Map;
  */
 public abstract class BaseSbetReader implements SbetReader
 {
-    private Map<String, Class> classesPerBeanName = new HashMap<String, Class>();
+    private Map<String, Class> classesPerBeanPath = new HashMap<String, Class>();
+
+    private Map<String, Factory> factoriesPerBeanPath = new HashMap<String, Factory>();
 
     private Class defaultClass = null;
 
     @Override
     public void setClass(String beanName, Class clazz) {
-        classesPerBeanName.put(beanName, clazz);
+        classesPerBeanPath.put(beanName, clazz);
+    }
+
+    @Override
+    public void setFactory(String beanPath, Factory factory) {
+        factoriesPerBeanPath.put(beanPath, factory);
     }
 
     @Override
@@ -44,7 +50,8 @@ public abstract class BaseSbetReader implements SbetReader
         if (defaultClass != null) {
             textReaderProcessor.setDefaultClassToInstantiate(defaultClass);
         }
-        textReaderProcessor.setClasses(classesPerBeanName);
+        textReaderProcessor.setClasses(classesPerBeanPath);
+        textReaderProcessor.setFactories(factoriesPerBeanPath);
         textReaderProcessor.extractData(templateReader, documentReader, data);
     }
 

@@ -1,15 +1,12 @@
 package lib.sbet.parser;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.MethodUtils;
+import lib.sbet.Factory;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.Writer;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -25,9 +22,11 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
 
     private Class defaultClass = String.class;
 
-    private Map<String, Class> classesPerBeanName = new HashMap<String, Class>();
+    private Map<String, Class> classesPerBeanPath = new HashMap<String, Class>();
 
     boolean ignoreInstantiationFailures = false;
+
+    private Map<String, Factory> factoriesPerBeanPath = new HashMap<String, Factory>();
 
     /**
      * Reads data character by character until it can find an expression in the template.
@@ -153,7 +152,7 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
         Object bean = data.get(key);
 
         if (bean == null) {
-            bean = instantiateObject(key, value);
+            bean = instantiateObject(key, null);
             if (bean == null) {
                 // We failed to instantiate the object and ignore failures (otherwise we would have got an exception by now).
                 return;
@@ -172,10 +171,11 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
 
         try {
             // climb up the expression ladder until the very last expression, instantiating null objects as we go up.
+
             for (AtomicExpression atomicExpr : atomicExprs) {
-                bean = atomicExpr.resolve(bean);
-                if (bean == null) {
-                    Object childBean = instantiateObject(atomicExpr.getPath(), null);
+                Object childBean = atomicExpr.resolve(bean);
+                if (childBean == null) {
+                    childBean = instantiateObject(atomicExpr.getPath(), null);
                     if (childBean == null) {
                         // We failed to instantiate the object and ignore failures (otherwise we would have got an exception by now).
                         return;
@@ -198,7 +198,13 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
      * If value is null, we use no-arg constructor. Otherwise, we use String constructor.
      */
     private Object instantiateObject(String beanPath, String value) {
-        Class clazz = classesPerBeanName.get(beanPath);
+
+        Factory f = factoriesPerBeanPath.get(beanPath);
+        if (f != null) {
+            return f.createObject();
+        }
+
+        Class clazz = classesPerBeanPath.get(beanPath);
         if (clazz == null) {
             clazz = defaultClass;
         }
@@ -230,15 +236,18 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
         this.defaultClass = defaultClass;
     }
 
-    public void setClasses(Map<String, Class> classesPerBeanName) {
-        this.classesPerBeanName = classesPerBeanName;
-    }
-
-    public void setClass(String beanPath,  Class clazz) {
-        this.classesPerBeanName.put(beanPath, clazz);
+    public void setClasses(Map<String, Class> classesPerBeanPath) {
+        this.classesPerBeanPath = classesPerBeanPath;
     }
 
     public void setIgnoreInstantiationFailures(boolean ignore) {
         this.ignoreInstantiationFailures = ignore;
     }
+
+    public void setFactories(Map<String, Factory> factoriesPerBeanPath) { this.factoriesPerBeanPath = factoriesPerBeanPath;  }
+
+    public void setFactory(String beanPath,  Factory factory) {
+        this.factoriesPerBeanPath.put(beanPath, factory);
+    }
+
 }

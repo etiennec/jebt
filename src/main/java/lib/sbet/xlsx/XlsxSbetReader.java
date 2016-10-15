@@ -1,5 +1,6 @@
 package lib.sbet.xlsx;
 
+import lib.sbet.Factory;
 import lib.sbet.SbetReader;
 
 import java.util.Map;
@@ -14,6 +15,11 @@ public class XlsxSbetReader implements SbetReader
     }
 
     public void setClass(String beanName, Class clazz) {
+        // TODO
+    }
+
+    @Override
+    public void setFactory(String beanPath, Factory factory) {
         // TODO
     }
 

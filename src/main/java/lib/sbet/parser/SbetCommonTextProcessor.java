@@ -136,11 +136,13 @@ public abstract class SbetCommonTextProcessor {
                     @Override
                     public void set(Object bean, Object value) throws Exception {
                         try {
-                            BeanUtils.setProperty(bean, token, value);
-                        } catch (Exception e) {
-                            // If BeanUtils cannot find the setter, we will try to set the field ; we'll only set it if it's public.
+                            // First we try to set the value if it's a public property. If it's not public, we won't do it.
                             Field field = bean.getClass().getDeclaredField(token);
                             field.set(bean, value);
+                        } catch (Exception e) {
+                            // If we cannot set the field as a public property, we try with BeanUtils. This will work if it's a setter.
+                            // Note however that BeanUtils will do nothing and not throw an exception if the field is read-only.
+                            BeanUtils.setProperty(bean, token, value);
                         }
                     }
 
