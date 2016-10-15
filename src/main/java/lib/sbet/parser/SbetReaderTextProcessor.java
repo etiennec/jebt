@@ -146,14 +146,14 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
 
         if (elements.length == 1 && key.equals(elements[0])) {
             // We're directly setting the String value in the data map.
-            data.put(elements[0], value);
+            data.put(elements[0], instantiateObject(elements[0], value));
             return;
         }
 
         Object bean = data.get(key);
 
         if (bean == null) {
-            bean = instantiateObject(key);
+            bean = instantiateObject(key, value);
             if (bean == null) {
                 // We failed to instantiate the object and ignore failures (otherwise we would have got an exception by now).
                 return;
@@ -175,7 +175,7 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
             for (AtomicExpression atomicExpr : atomicExprs) {
                 bean = atomicExpr.resolve(bean);
                 if (bean == null) {
-                    Object childBean = instantiateObject(atomicExpr.getPath());
+                    Object childBean = instantiateObject(atomicExpr.getPath(), null);
                     if (childBean == null) {
                         // We failed to instantiate the object and ignore failures (otherwise we would have got an exception by now).
                         return;
@@ -194,7 +194,10 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
 
     }
 
-    private Object instantiateObject(String beanPath) {
+    /**
+     * If value is null, we use no-arg constructor. Otherwise, we use String constructor.
+     */
+    private Object instantiateObject(String beanPath, String value) {
         Class clazz = classesPerBeanName.get(beanPath);
         if (clazz == null) {
             clazz = defaultClass;
@@ -209,7 +212,11 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
         }
 
         try {
-            return clazz.newInstance();
+            if (value == null) {
+                return clazz.newInstance();
+            } else {
+                return clazz.getDeclaredConstructor(String.class).newInstance(value);
+            }
         } catch (Exception e) {
             if (ignoreInstantiationFailures) {
                 return null;

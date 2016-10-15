@@ -4,13 +4,14 @@ import java.util.Map;
 
 /**
  * Reads the source (file, etc.), returns the data.<br>
- *     The type T will be instantiated by default whenever we need to create new data objects when reading the template. It's possible to set the class of other objects depending on the bean name by using {@link #setClass(String, Class)}.
+ *     The class passed in {@link #setDefaultClass(Class)} will be instantiated by default whenever we need to create new data objects when reading the template. String will be used by default if nothing is set.
+ *     It's possible to set the class of other objects depending on the bean path by using {@link #setClass(String, Class)}.
  */
-public interface SbetReader<T> {
+public interface SbetReader {
 
     public Map<String, Object> readData();
 
-    public void setClass(String beanName, Class clazz);
+    public void setClass(String beanPath, Class clazz);
 
     public void setDefaultClass(Class clazz);
 }

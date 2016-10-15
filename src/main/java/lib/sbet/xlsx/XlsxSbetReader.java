@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  Implementation of {@link XlsxSbetReader} for XLSX Excel format.
  */
-public class XlsxSbetReader<T> implements SbetReader<T>
+public class XlsxSbetReader implements SbetReader
 {
     public Map<String, Object> readData() {
         return null;

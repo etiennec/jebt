@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  This class contains most common logic (for beans manipulation) used by {@link SbetReader} implementations.
  */
-public abstract class BaseSbetReader<T> implements SbetReader<T>
+public abstract class BaseSbetReader implements SbetReader
 {
     private Map<String, Class> classesPerBeanName = new HashMap<String, Class>();
 
