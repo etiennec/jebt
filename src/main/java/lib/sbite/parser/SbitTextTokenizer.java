@@ -6,7 +6,7 @@ import java.io.Reader;
 /**
  * Reads through text, and returns tokens containing either some text, or a Sbet template expression. Text token have a limited max size. Expression don't, and are always returned as a whole.
  */
-public class SbetTextTokenizer {
+public class SbitTextTokenizer {
 
     private Reader reader;
 
@@ -19,11 +19,11 @@ public class SbetTextTokenizer {
 
     public enum TokenType {TEXT, EXPRESSION};
 
-    public SbetTextTokenizer(Reader reader) {
+    public SbitTextTokenizer(Reader reader) {
         this.reader = reader;
     }
 
-    public SbetTextTokenizer setMaxTextLength(int maxTextLength) {
+    public SbitTextTokenizer setMaxTextLength(int maxTextLength) {
         this.MAX_TEXT_LENGTH = maxTextLength;
         return this;
     }

@@ -1,14 +1,14 @@
 package lib.sbite.xlsx;
 
 import lib.sbite.Factory;
-import lib.sbite.SbetReader;
+import lib.sbite.SbitReader;
 
 import java.util.Map;
 
 /**
- Implementation of {@link XlsxSbetReader} for XLSX Excel format.
+ Implementation of {@link SbiteReader} for XLSX Excel format.
  */
-public class XlsxSbetReader implements SbetReader
+public class SbiteReader implements SbitReader
 {
     public Map<String, Object> readData() {
         return null;

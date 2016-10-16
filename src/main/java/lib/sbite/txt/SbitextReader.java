@@ -1,15 +1,15 @@
 package lib.sbite.txt;
 
-import lib.sbite.BaseSbetReader;
+import lib.sbite.BaseSbitReader;
 import org.apache.poi.util.IOUtils;
 
 import java.io.*;
 import java.util.Map;
 
 /**
- Simple Implementation of {@link TxtSbetReader} for plain old text.
+ Simple Implementation of {@link SbitextReader} for plain old text.
  */
-public class TxtSbetReader extends BaseSbetReader
+public class SbitextReader extends BaseSbitReader
 {
 
     private Reader templateReader;
@@ -51,16 +51,16 @@ public class TxtSbetReader extends BaseSbetReader
      * @param templateReader the {@link Reader} used to read the template text.
      * @param documentReader the {@link Reader} used to read the document with data filled in.
      */
-    public TxtSbetReader(Reader templateReader, Reader documentReader) {
+    public SbitextReader(Reader templateReader, Reader documentReader) {
         this.templateReader = templateReader;
         this.documentReader = documentReader;
     }
 
-    public TxtSbetReader(String templateFilePath, String documentFilePath) {
+    public SbitextReader(String templateFilePath, String documentFilePath) {
         this(new File(templateFilePath), new File(documentFilePath));
     }
 
-    public TxtSbetReader(File templateFile, File documentFile) {
+    public SbitextReader(File templateFile, File documentFile) {
         this.templateFile = templateFile;
         this.documentFile = documentFile;
         shouldCreateReadersOnRun = true;

@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class TxtSbetWriterTest implements TestConstants
+public class SbitextWriterTest implements TestConstants
 {
 
     @Test
@@ -41,7 +41,7 @@ public class TxtSbetWriterTest implements TestConstants
 
         StringWriter output = new StringWriter();
 
-        TxtSbetWriter writer = new TxtSbetWriter(templateReader, output);
+        SbitextWriter writer = new SbitextWriter(templateReader, output);
 
         writer.writeData(data);
 

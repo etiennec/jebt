@@ -7,7 +7,7 @@ import java.util.Map;
  *     The class passed in {@link #setDefaultClass(Class)} will be instantiated by default whenever we need to create new data objects when reading the template. String will be used by default if nothing is set.
  *     It's possible to set the class of other objects depending on the bean path by using {@link #setClass(String, Class)}.
  */
-public interface SbetReader {
+public interface SbitReader {
 
     public Map<String, Object> readData();
 

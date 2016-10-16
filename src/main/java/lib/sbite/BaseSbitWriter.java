@@ -1,17 +1,17 @@
 package lib.sbite;
 
-import lib.sbite.parser.SbetWriterTextProcessor;
+import lib.sbite.parser.SbitWriterTextProcessor;
 
 import java.io.*;
 import java.util.Map;
 
 /**
- * This class contains most common logic for text parsing & beans manipulation used by {@link SbetWriter} implementations.
+ * This class contains most common logic for text parsing & beans manipulation used by {@link SbitWriter} implementations.
  */
-public abstract class BaseSbetWriter implements SbetWriter{
+public abstract class BaseSbitWriter implements SbitWriter {
 
 
-    private SbetWriterTextProcessor textWriterProcessor = new SbetWriterTextProcessor();
+    private SbitWriterTextProcessor textWriterProcessor = new SbitWriterTextProcessor();
 
     /**
      *

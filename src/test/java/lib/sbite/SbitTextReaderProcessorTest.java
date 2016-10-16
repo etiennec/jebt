@@ -9,13 +9,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class SbetTextReaderProcessorTest
+public class SbitTextReaderProcessorTest
 {
 
     @Test
     public void testExtractData()
     {
-        BaseSbetReader reader = new BaseSbetReader() {
+        BaseSbitReader reader = new BaseSbitReader() {
+            @Override
             public Map<String, Object> readData() {
                 return null;
             }
@@ -58,7 +59,7 @@ public class SbetTextReaderProcessorTest
         reader.setFactory("theMap(customer)", new Factory() {
                     @Override
                     public Object createObject() {
-                        SbetTextReaderProcessorTest parentClass = new SbetTextReaderProcessorTest();
+                        SbitTextReaderProcessorTest parentClass = new SbitTextReaderProcessorTest();
                         Customer c = parentClass.new Customer();
                         return c;
                     }

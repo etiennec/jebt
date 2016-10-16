@@ -1,14 +1,14 @@
 package lib.sbite.xlsx;
 
-import org.junit.Test;
+import org.junit.*;
 
 import static org.junit.Assert.assertTrue;
 
-public class XlsxSbetWriterTest
+public class SbiteReaderTest
 {
 
     @Test
-    public void testWrite()
+    public void testRead()
     {
         // TODO
     }

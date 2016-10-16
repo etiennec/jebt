@@ -8,13 +8,13 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class SbetTextWriterProcessorTest
+public class SbitTextWriterProcessorTest
 {
 
     @Test
     public void testConvertString()
     {
-        BaseSbetWriter baseWriter = new BaseSbetWriter() {
+        BaseSbitWriter baseWriter = new BaseSbitWriter() {
             public void writeData(Map<String, Object> data) {
 
             }
@@ -44,7 +44,7 @@ public class SbetTextWriterProcessorTest
 
     @Test
     public void testExtractData() {
-        BaseSbetReader baseReader = new BaseSbetReader() {
+        BaseSbitReader baseReader = new BaseSbitReader() {
 
             @Override
             public Map<String, Object> readData() {

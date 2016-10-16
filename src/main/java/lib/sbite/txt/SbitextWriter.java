@@ -1,16 +1,16 @@
 package lib.sbite.txt;
 
-import lib.sbite.BaseSbetWriter;
-import lib.sbite.SbetWriter;
+import lib.sbite.BaseSbitWriter;
+import lib.sbite.SbitWriter;
 import org.apache.poi.util.IOUtils;
 
 import java.io.*;
 import java.util.Map;
 
 /**
- * Simple Implementation of {@link SbetWriter} for plain old text files.
+ * Simple Implementation of {@link SbitWriter} for plain old text files.
  */
-public class TxtSbetWriter extends BaseSbetWriter {
+public class SbitextWriter extends BaseSbitWriter {
 
     private Reader templateReader;
     private Writer outputWriter;
@@ -49,16 +49,16 @@ public class TxtSbetWriter extends BaseSbetWriter {
      * @param templateReader the {@link Reader} used to read the template text.
      * @param outputWriter the {@link Writer} used to write the result of the filled in template.
      */
-    public TxtSbetWriter(Reader templateReader, Writer outputWriter) {
+    public SbitextWriter(Reader templateReader, Writer outputWriter) {
         this.templateReader = templateReader;
         this.outputWriter = outputWriter;
     }
 
-    public TxtSbetWriter(String templateFilePath, String outputFilePath) {
+    public SbitextWriter(String templateFilePath, String outputFilePath) {
         this(new File(templateFilePath), new File(outputFilePath));
     }
 
-    public TxtSbetWriter(File templateFile, File outputFile) {
+    public SbitextWriter(File templateFile, File outputFile) {
         this.templateFile = templateFile;
         this.outputFile = outputFile;
         shouldCreateReaderWriterOnRun = true;

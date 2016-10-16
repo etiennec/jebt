@@ -1,6 +1,6 @@
 package lib.sbite;
 
-import lib.sbite.parser.SbetWriterTextProcessor;
+import lib.sbite.parser.SbitWriterTextProcessor;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -10,13 +10,13 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class SbetTemplateEvaluationTest
+public class SbitTemplateEvaluationTest
 {
 
     @Test
     public void testTemplateExpressionEvaluation()
     {
-        SbetWriterTextProcessor parser = new SbetWriterTextProcessor();
+        SbitWriterTextProcessor parser = new SbitWriterTextProcessor();
 
         Map<String, Object> data = new HashMap<String, Object>();
 

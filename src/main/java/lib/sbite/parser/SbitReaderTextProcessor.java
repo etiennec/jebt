@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * Class in charge of processing raw text with Sbet Template elements in it.
  */
-public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
+public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
 
     /**
      * This value sets an approximate text length to match with template text before deciding that the expression value is correctly matched.
@@ -34,15 +34,15 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
      */
     public void extractData(Reader templateReader, Reader documentReader, Map<String, Object> data) {
 
-        SbetTextTokenizer tokenizer = new SbetTextTokenizer(templateReader);
+        SbitTextTokenizer tokenizer = new SbitTextTokenizer(templateReader);
 
-        SbetTextTokenizer.Token token = null;
+        SbitTextTokenizer.Token token = null;
 
         boolean skipRead = false;
 
         try {
             while ((skipRead && token != null) || (token = tokenizer.readNext()) != null) {
-                if (token.getType() == SbetTextTokenizer.TokenType.EXPRESSION) {
+                if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
                     // EXPRESSION: We must match the document text to find the expression value. So we read the document text until we match the next text to find the end of the expression value.
                     String expression = token.getText();
 
@@ -51,17 +51,17 @@ public class SbetReaderTextProcessor extends SbetCommonTextProcessor {
                     StringBuilder value = new StringBuilder("");
 
                     // We build the string to match to detect the end of the template value.
-                    while (textToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (token = tokenizer.readNext()) != null && token.getType() == SbetTextTokenizer.TokenType.TEXT) {
+                    while (textToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (token = tokenizer.readNext()) != null && token.getType() == SbitTextTokenizer.TokenType.TEXT) {
                         textToMatch.append(token.getText());
                     }
 
-                    if (token != null && token.getType() == SbetTextTokenizer.TokenType.EXPRESSION) {
+                    if (token != null && token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
                         // We've already read the next expression, so we should not re-read it upon next loop
                         skipRead = true;
                     }
 
                     if (token != null && textToMatch.length() == 0) {
-                        if (token.getType() == SbetTextTokenizer.TokenType.EXPRESSION ) {
+                        if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION ) {
                             // We've found a new expression immediately after the first one ; that's INVALID as it doesn't allow us to match the expression value.
                             throw new RuntimeException("Found two consecutive Expressions in the template with no text in-between. That's invalid when extracting data from document. {{" + expression + "}} / {{" + token.getText() + "}}");
                         } else {

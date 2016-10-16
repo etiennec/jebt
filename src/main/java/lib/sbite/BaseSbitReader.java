@@ -1,6 +1,6 @@
 package lib.sbite;
 
-import lib.sbite.parser.SbetReaderTextProcessor;
+import lib.sbite.parser.SbitReaderTextProcessor;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- This class contains most common logic (for beans manipulation) used by {@link SbetReader} implementations.
+ This class contains most common logic (for beans manipulation) used by {@link SbitReader} implementations.
  */
-public abstract class BaseSbetReader implements SbetReader
+public abstract class BaseSbitReader implements SbitReader
 {
     private Map<String, Class> classesPerBeanPath = new HashMap<String, Class>();
 
@@ -46,7 +46,7 @@ public abstract class BaseSbetReader implements SbetReader
      * This method will edit/insert data in the passed data Map.
      */
     public void extractData(Reader templateReader, Reader documentReader, Map<String, Object> data) {
-        SbetReaderTextProcessor textReaderProcessor = new SbetReaderTextProcessor();
+        SbitReaderTextProcessor textReaderProcessor = new SbitReaderTextProcessor();
         if (defaultClass != null) {
             textReaderProcessor.setDefaultClassToInstantiate(defaultClass);
         }

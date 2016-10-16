@@ -2,7 +2,7 @@ package lib.sbite.txt;
 
 import org.junit.Test;
 
-public class TxtSbetReaderTest
+public class SbitextReaderTest
 {
 
     @Test

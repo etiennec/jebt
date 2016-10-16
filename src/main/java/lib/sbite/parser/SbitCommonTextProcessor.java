@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Class in charge of processing raw text with Sbet Template elements in it.
  */
-public abstract class SbetCommonTextProcessor {
+public abstract class SbitCommonTextProcessor {
 
     /**
      * For now, we return an empty string when some value is null, but in the future we could just return null.

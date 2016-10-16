@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Class in charge of processing raw text with Sbet Template elements in it.
  */
-public class SbetWriterTextProcessor extends SbetCommonTextProcessor {
+public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
 
 
 
@@ -22,13 +22,13 @@ public class SbetWriterTextProcessor extends SbetCommonTextProcessor {
      */
     public void convertString(Reader sourceText, Writer outText, Map<String, Object> data) {
 
-        SbetTextTokenizer tokenizer = new SbetTextTokenizer(sourceText);
+        SbitTextTokenizer tokenizer = new SbitTextTokenizer(sourceText);
 
-        SbetTextTokenizer.Token token;
+        SbitTextTokenizer.Token token;
 
         try {
             while ((token = tokenizer.readNext()) != null) {
-                if (token.getType() == SbetTextTokenizer.TokenType.EXPRESSION) {
+                if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
                     outText.append(evaluateExpression(token.getText(), data));
                 } else {
                     // TEXT Token
