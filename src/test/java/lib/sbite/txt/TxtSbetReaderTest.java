@@ -1,4 +1,4 @@
-package lib.sbet.txt;
+package lib.sbite.txt;
 
 import org.junit.Test;
 

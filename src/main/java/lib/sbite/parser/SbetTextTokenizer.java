@@ -1,4 +1,4 @@
-package lib.sbet.parser;
+package lib.sbite.parser;
 
 import java.io.IOException;
 import java.io.Reader;

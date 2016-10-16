@@ -1,6 +1,6 @@
-package lib.sbet.xlsx;
+package lib.sbite.xlsx;
 
-import lib.sbet.SbetWriter;
+import lib.sbite.SbetWriter;
 
 import java.util.Map;
 

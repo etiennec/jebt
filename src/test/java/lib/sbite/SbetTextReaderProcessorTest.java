@@ -1,7 +1,5 @@
-package lib.sbet;
+package lib.sbite;
 
-import lib.sbet.parser.SbetReaderTextProcessor;
-import lib.sbet.txt.TxtSbetWriterTest;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -18,7 +16,6 @@ public class SbetTextReaderProcessorTest
     public void testExtractData()
     {
         BaseSbetReader reader = new BaseSbetReader() {
-            @Override
             public Map<String, Object> readData() {
                 return null;
             }

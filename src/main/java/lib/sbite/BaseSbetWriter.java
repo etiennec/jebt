@@ -1,6 +1,6 @@
-package lib.sbet;
+package lib.sbite;
 
-import lib.sbet.parser.SbetWriterTextProcessor;
+import lib.sbite.parser.SbetWriterTextProcessor;
 
 import java.io.*;
 import java.util.Map;

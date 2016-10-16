@@ -1,4 +1,4 @@
-package lib.sbet;
+package lib.sbite;
 
 import java.io.*;
 

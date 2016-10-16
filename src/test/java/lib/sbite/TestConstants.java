@@ -1,4 +1,4 @@
-package lib.sbet;
+package lib.sbite;
 
 /**
  * Created by canaud on 9/24/2016.

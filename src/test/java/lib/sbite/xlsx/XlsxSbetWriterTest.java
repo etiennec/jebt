@@ -1,4 +1,4 @@
-package lib.sbet.xlsx;
+package lib.sbite.xlsx;
 
 import org.junit.Test;
 

@@ -1,7 +1,7 @@
-package lib.sbet.txt;
+package lib.sbite.txt;
 
-import lib.sbet.TestConstants;
-import lib.sbet.TestUtils;
+import lib.sbite.TestConstants;
+import lib.sbite.TestUtils;
 import org.junit.Test;
 
 import java.io.*;

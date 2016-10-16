@@ -1,6 +1,6 @@
-package lib.sbet;
+package lib.sbite;
 
-import lib.sbet.parser.SbetReaderTextProcessor;
+import lib.sbite.parser.SbetReaderTextProcessor;
 
 import java.io.Reader;
 import java.io.StringReader;

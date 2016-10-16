@@ -1,7 +1,7 @@
-package lib.sbet.xlsx;
+package lib.sbite.xlsx;
 
-import lib.sbet.Factory;
-import lib.sbet.SbetReader;
+import lib.sbite.Factory;
+import lib.sbite.SbetReader;
 
 import java.util.Map;
 

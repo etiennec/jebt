@@ -1,7 +1,6 @@
-package lib.sbet;
+package lib.sbite;
 
-import lib.sbet.parser.SbetCommonTextProcessor;
-import lib.sbet.parser.SbetWriterTextProcessor;
+import lib.sbite.parser.SbetWriterTextProcessor;
 import org.junit.Test;
 
 import java.util.Arrays;

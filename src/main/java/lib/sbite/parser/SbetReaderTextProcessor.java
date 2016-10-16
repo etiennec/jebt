@@ -1,7 +1,6 @@
-package lib.sbet.parser;
+package lib.sbite.parser;
 
-import lib.sbet.Factory;
-import org.apache.commons.collections.map.HashedMap;
+import lib.sbite.Factory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

@@ -1,7 +1,7 @@
-package lib.sbet.txt;
+package lib.sbite.txt;
 
-import lib.sbet.BaseSbetWriter;
-import lib.sbet.SbetWriter;
+import lib.sbite.BaseSbetWriter;
+import lib.sbite.SbetWriter;
 import org.apache.poi.util.IOUtils;
 
 import java.io.*;

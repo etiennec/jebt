@@ -1,6 +1,5 @@
-package lib.sbet;
+package lib.sbite;
 
-import lib.sbet.txt.TxtSbetWriter;
 import org.junit.Test;
 
 import java.util.HashMap;

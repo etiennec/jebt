@@ -1,6 +1,5 @@
-package lib.sbet.xlsx;
+package lib.sbite.xlsx;
 
-import junit.framework.TestSuite;
 import org.junit.*;
 
 import static org.junit.Assert.assertTrue;
