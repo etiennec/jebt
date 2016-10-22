@@ -36,6 +36,19 @@ public class SbitTextTokenizer {
     }
 
     /**
+     * This method is not memory efficient and should only be used for Test purpose, or when it's guaranteed that the text to parse is of known & limited size.
+     * @return
+     */
+    public List<Token> readAll() {
+        List<Token> tokens = new ArrayList<Token>();
+        Token token = null;
+        while ((token = readNext()) != null) {
+            tokens.add(token);
+        }
+        return tokens;
+    }
+
+    /**
      *
      * @return the next Token (TEXT or EXPRESSION) or null if reached the end of the Reader.
      */
@@ -155,44 +168,49 @@ public class SbitTextTokenizer {
     }
 
     private Token readLoopToken() throws IOException {
-        // We read the first LoopToken, then append the following tokens to it until we reach another loopToken;
-        // it either is the closing loop token or the beginning of another (possibly nested) loop token.
-        LinkedList<LoopToken> loopTokens = new LinkedList<LoopToken>();
+        // We read the first LoopToken, and detect whether it is the closing loop token or the beginning of another (possibly nested) loop token.
         LoopToken baseLoopToken =  readLoopTag();
+
+        if (StringUtils.isBlank(baseLoopToken.getCollectionBeanPath())) {
+            // Closing loop tag - we don't create a new tokenizer, we just return it.
+            return baseLoopToken;
+        }
+
         LoopToken currentLoopToken = baseLoopToken;
-        loopTokens.addLast(currentLoopToken);
 
         SbitTextTokenizer loopTokenizer = new SbitTextTokenizer(this.reader);
 
-        while (!loopTokens.isEmpty()) {
+        while (true) {
             Token token = loopTokenizer.readNext();
+
+            if (token == null) {
+                // Premature end of loop. This is not allowed!
+                throw new SbitParseException("Reached the end of the reader while still within a loop tag ("+currentLoopToken.getItemBeanName()+"). " +
+                        "This is not allowed, all loop tags should be properly closed. ");
+            }
+
             if (token.getType() != TokenType.LOOP) {
                 currentLoopToken.addToken(token);
                 continue;
             }
-            // We reached a loop token. Is it the end of the current loopToken or the start of a new one?
+            // We reached a loop token. Is it the end of the current loopToken or a nested loop token?
             LoopToken newLoopToken = (LoopToken)token;
 
-            if (StringUtils.isBlank(newLoopToken.getCollectionBeanPath()) &&
-                    (StringUtils.isBlank(newLoopToken.getItemBeanName()) || newLoopToken.getItemBeanName().equals(currentLoopToken.getItemBeanName()))) {
-                // Closing current loop token
-                loopTokens.removeLast();
-                if (!loopTokens.isEmpty()) {
-                    currentLoopToken = loopTokens.getLast();
+            if (StringUtils.isBlank(newLoopToken.getCollectionBeanPath())) {
+                if ((StringUtils.isBlank(newLoopToken.getItemBeanName()) || newLoopToken.getItemBeanName().equals(currentLoopToken.getItemBeanName()))) {
+                    // Closing current loop token
+                    break;
+                } else {
+                    // Closing loop tag, but with a mismatching item bean name.
+                    throw new SbitParseException("Mismatch between the item bean name of the opening tag ('"+currentLoopToken.getItemBeanName()+"') and of the closing tag ('"+newLoopToken.getItemBeanName()+"')");
                 }
+            } else {
+                // Nested loop tag.
+                currentLoopToken.addToken(token);
                 continue;
             }
 
-            if (!StringUtils.isBlank(newLoopToken.getCollectionBeanPath())) {
-                // New opening token.
-                loopTokens.addLast(newLoopToken);
-                currentLoopToken.addToken(newLoopToken);
-                currentLoopToken = newLoopToken;
-                continue;
-            }
-
-            // If we are here, it means we have a Closing Loop Token with a item bean name that mismatches the opening loop tag.
-            throw new RuntimeException("Mismatch between the item bean name of the opening tag ('"+currentLoopToken.getItemBeanName()+"') and of the closing tag ('"+newLoopToken.getItemBeanName()+"')");
+            // unreacheable code here.
         }
 
         return baseLoopToken;
@@ -215,7 +233,7 @@ public class SbitTextTokenizer {
                 if (j == -1) {
                     // We finish the text in the middle of a loop expression. This is an error!
                     expression.append(c);
-                    throw new RuntimeException("Text finished in the middle of a Loop tag: ..."+expression.toString());
+                    throw new SbitParseException("Text finished in the middle of a Loop tag: ..."+expression.toString());
                 }
                 char c2 = (char) j;
 
@@ -225,7 +243,7 @@ public class SbitTextTokenizer {
                     return new LoopToken(expression.toString());
                 } else {
                     // One single } means a syntax error.
-                    throw new RuntimeException("Found a single } within Sbit loop {[ expression ]}:  {["+expression.toString() );
+                    throw new SbitParseException("Found a single } within Sbit loop {[ expression ]}:  {["+expression.toString() );
                 }
             } else {
                 // Just another character in the expression.
@@ -235,7 +253,7 @@ public class SbitTextTokenizer {
         }
 
         // if we're here, it means the text ended before expression closed. This is an error.
-        throw new RuntimeException("Text finished right after an opening Loop tag {[");
+        throw new SbitParseException("Text finished right after an opening Loop tag {[");
     }
 
     /**
@@ -267,7 +285,7 @@ public class SbitTextTokenizer {
                     return new Token(TokenType.EXPRESSION, expression.toString());
                 } else {
                     // One single } means a syntax error.
-                    throw new RuntimeException("Found a single { within Sbet {{ expression }}:  {{"+expression.toString() );
+                    throw new SbitParseException("Found a single { within Sbet {{ expression }}:  {{"+expression.toString() );
                 }
             } else {
                 // Just another character in the expression.
@@ -327,7 +345,7 @@ public class SbitTextTokenizer {
                 itemBeanName = values[1].trim();
             } else {
                 // Too many parameters
-                throw new RuntimeException("Too many | in your loop tag '"+loopTagContent+"'. Only use one to separate collection bean path from item bean name!");
+                throw new SbitParseException("Too many | in your loop tag '"+loopTagContent+"'. Only use one to separate collection bean path from item bean name!");
             }
         }
 
