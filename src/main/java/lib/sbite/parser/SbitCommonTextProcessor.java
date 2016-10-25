@@ -42,7 +42,7 @@ public abstract class SbitCommonTextProcessor {
             String remainingExpression = null;
 
             if (StringUtils.isBlank(expression)) {
-                return exprs;
+                continue;
             }
 
             if (expression.startsWith("[")) {

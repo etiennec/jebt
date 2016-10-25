@@ -1,0 +1,17 @@
+Sbite can loop on arrays or Iterables.
+Hello customers customer 0 customer 1 customer 2!
+
+You can also do nested loops:
+Showing customer information & addresses:
+Customer Name: customer 0
+Address information:
+- postalCode:200091
+- Street number:123
+Customer Name: customer 1
+Address information:
+- postalCode:123456
+Customer Name: customer 2
+Address information:
+- postalCode:200093
+- Street:Broadway
+- Street number:1

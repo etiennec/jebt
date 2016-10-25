@@ -5,10 +5,7 @@ import lib.sbite.TestUtils;
 import org.junit.Test;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -84,10 +81,18 @@ public class SbitextWriterTest implements TestConstants
 
         List<Customer> customers= new ArrayList<Customer>();
         customers.add(new Customer());
-        customers.add(null);
+        customers.add(new Customer());
         customers.add(new Customer());
 
+        customers.get(0).name = "customer 0";
+        customers.get(1).name = "customer 1";
+        customers.get(2).name = "customer 2";
+        customers.get(0).address.fields.put("postalCode", "200091");
+        customers.get(0).address.fields.put("Street number", "123");
+        customers.get(1).address.fields.put("postalCode", "123456");
         customers.get(2).address.fields.put("postalCode", "200093");
+        customers.get(2).address.fields.put("Street", "Broadway");
+        customers.get(2).address.fields.put("Street number", "1");
 
         data.put("customers", customers);
 
@@ -100,7 +105,7 @@ public class SbitextWriterTest implements TestConstants
     }
 
     public class Address {
-        public Map<String, String> fields = new HashMap<String, String>();
+        public Map<String, String> fields = new LinkedHashMap<String, String>();
     }
 
 

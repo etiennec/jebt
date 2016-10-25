@@ -1,10 +1,14 @@
 package lib.sbite.parser;
 
+import org.apache.commons.collections.iterators.ArrayIterator;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -28,18 +32,47 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
 
         try {
             while ((token = tokenizer.readNext()) != null) {
-                if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
-                    outText.append(evaluateExpression(token.getText(), data));
-                } else {
-                    // TEXT Token
-                    outText.append(token.getText());
-                }
+                processToken(token, outText, data);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private void processToken(SbitTextTokenizer.Token token, Writer outText, Map<String, Object> data) throws IOException{
+        if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
+            outText.append(evaluateExpression(token.getText(), data));
+        } else if (token.getType() == SbitTextTokenizer.TokenType.LOOP) {
+            SbitTextTokenizer.LoopToken loop = (SbitTextTokenizer.LoopToken)token;
+            Object bean = evaluateBean(loop.getCollectionBeanPath(), data);
+            if (bean == null) {
+                return;
+            }
+            Iterator it;
+            if (bean.getClass().isArray()) {
+                it = new ArrayIterator(bean);
+            } else if (bean instanceof Iterable) {
+                it = ((Iterable)bean).iterator();
+            } else {
+                // Bean is not an array nor an iterable
+                throw new SbitEvaluationException("Bean found at "+loop.getCollectionBeanPath()+" is not an Array or an Iterable");
+            }
 
+            while (it.hasNext()) {
+                Object obj = it.next();
+
+                Map<String, Object> dataCopy = new HashMap<String, Object>(data);
+                dataCopy.put(loop.getItemBeanName(), obj);
+
+                for (SbitTextTokenizer.Token tok : loop.getLoopTokens()) {
+                    processToken(tok, outText, dataCopy);
+                }
+            }
+
+        } else {
+            // TEXT Token
+            outText.append(token.getText());
+        }
     }
 
     /**
@@ -50,8 +83,18 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
      */
     public String evaluateExpression(String expression, Map<String, Object> data) {
 
+        Object bean = evaluateBean(expression, data);
+
+        if (bean == null) {
+            return getNullResult();
+        }
+
+        return bean.toString();
+    }
+
+    public Object evaluateBean(String expression, Map<String, Object> data) {
         if (StringUtils.isBlank(expression)) {
-            return "";
+            return null;
         }
 
         expression = expression.trim();
@@ -63,7 +106,7 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
         Object bean = data.get(key);
 
         if (bean == null) {
-            return getNullResult();
+            return null;
         }
 
         elements[0] = elements[0].substring(key.length());
@@ -73,11 +116,10 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
         for (AtomicExpression atomicExpr : atomicExprs) {
             bean = atomicExpr.resolve(bean);
             if (bean == null) {
-                return getNullResult();
+                return null;
             }
         }
 
-        return bean.toString();
-
+        return bean;
     }
 }
