@@ -17,8 +17,6 @@ import java.util.Map;
  */
 public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
 
-
-
     /**
      * @param sourceText A reader that reads template text.
      * @param outText A writer where we will write down the source text with all templating elements resolved.
@@ -111,7 +109,7 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
 
         elements[0] = elements[0].substring(key.length());
 
-        List<AtomicExpression> atomicExprs = extractAtomicExpressions(key, elements);
+        List<AtomicExpression> atomicExprs = extractAtomicExpressions(key, new BeanEvaluator(data), elements);
 
         for (AtomicExpression atomicExpr : atomicExprs) {
             bean = atomicExpr.resolve(bean);

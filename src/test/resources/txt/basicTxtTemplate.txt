@@ -2,7 +2,7 @@ Sbet supports single properties.
 Hello {{stringName}}!
 
 Sbet supports property chain, indexed properties, and mapped properties.
-The postal code of the third customer is {{customers[2].address.fields(postalCode)}}.
+The postal code of the third customer is {{customers[2].address.fields("postalCode")}}.
 
 
 

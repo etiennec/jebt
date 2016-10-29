@@ -11,7 +11,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Class in charge of processing raw text with Sbet Template elements in it.
+ * Class in charge of processing raw text with Sbet Template expressions in it.
+ * <br>
+ * So far, it's not supported to invoke method with parameters; only parameterless methods() are allowed, as text within parenthesis is reserved for mapped properties access.
  */
 public abstract class SbitCommonTextProcessor {
 
@@ -26,7 +28,7 @@ public abstract class SbitCommonTextProcessor {
 
 
     // This will recursively parse all atomic elements one after the other.
-    protected List<AtomicExpression> extractAtomicExpressions(String currentPath, String... expressions) {
+    protected List<AtomicExpression> extractAtomicExpressions(String currentPath,  BeanEvaluator evaluator, String... expressions) {
         List<AtomicExpression> exprs = new ArrayList<AtomicExpression>();
 
         boolean mustAddDot = false;
@@ -86,8 +88,23 @@ public abstract class SbitCommonTextProcessor {
                 remainingExpression = expression.substring(indexStr.length() + 2); // We remove the [ and ]
             } else if (expression.startsWith("(")) {
                 // Mapped Property
-                final String key = getLeadingText(expression.substring(1)); // removing leading (
-                currentPath += "("+key+")";
+                final String content = getLeadingText(expression.substring(1)); // removing leading (
+                currentPath += "("+content+")";
+                String keyStr = content.trim();
+
+                Object keyObj = null;
+
+                // Key can be a litteral String (fields("address")) or a variable that has to be resolved to an object that will be the key (fields(keyValue)).
+                if (keyStr.startsWith("\"") && keyStr.endsWith("\"")) {
+                    // Litteral
+                    keyObj = keyStr.substring(1, keyStr.length()-1);
+                } else {
+                    // Expression
+                    keyObj = evaluator.evaluate(keyStr);
+                }
+
+                final Object key = keyObj;
+
                 exprs.add(new AtomicExpression() {
                     @Override
                     public void set(Object bean, Object value) throws Exception {
@@ -99,9 +116,9 @@ public abstract class SbitCommonTextProcessor {
                         return ((java.util.Map<?, ?>) obj).get(key);
                     }
                 }.setPath(currentPath));
-                remainingExpression = expression.substring(key.length() + 2); // We remove the ( and )
+                remainingExpression = expression.substring(content.length() + 2); // We remove the ( and )
             } else if (expression.contains("()")) {
-                // Method call, there will always be only one and at the beginning
+                // Method call without parameters, if it's there it's at the beggining of the expression, right after the .
                 final String token = getLeadingText(expression);
                 currentPath += token+"()";
                 exprs.add(new AtomicExpression() {
@@ -155,7 +172,7 @@ public abstract class SbitCommonTextProcessor {
                 remainingExpression = expression.substring(token.length());
             }
 
-            exprs.addAll(extractAtomicExpressions(currentPath, remainingExpression));
+            exprs.addAll(extractAtomicExpressions(currentPath, evaluator, remainingExpression));
 
         }
 

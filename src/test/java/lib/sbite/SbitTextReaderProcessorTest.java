@@ -51,12 +51,12 @@ public class SbitTextReaderProcessorTest
         myMap.put("foo", "bar");
         data.put("myMap", myMap);
         assertEquals("bar", myMap.get("foo"));
-        reader.extractData("Hi {{myMap(foo)}}", "Hi Barry", data);
+        reader.extractData("Hi {{myMap(\"foo\")}}", "Hi Barry", data);
         assertEquals("Barry",  myMap.get("foo"));
 
         // Nested Instantiation & Factories
         reader.setClass("theMap", java.util.HashMap.class);
-        reader.setFactory("theMap(customer)", new Factory() {
+        reader.setFactory("theMap(\"customer\")", new Factory() {
                     @Override
                     public Object createObject() {
                         SbitTextReaderProcessorTest parentClass = new SbitTextReaderProcessorTest();
@@ -65,7 +65,7 @@ public class SbitTextReaderProcessorTest
                     }
                 });
         assertEquals(null, data.get("theMap"));
-        reader.extractData("Hi {{theMap(customer).name}}", "Hi Barry", data);
+        reader.extractData("Hi {{theMap(\"customer\").name}}", "Hi Barry", data);
         assertEquals("Barry",  ((Customer)((Map)data.get("theMap")).get("customer")).name);
     }
 

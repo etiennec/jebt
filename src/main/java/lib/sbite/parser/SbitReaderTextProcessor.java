@@ -162,7 +162,7 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
         // Removing data key from beginning of the expression
         elements[0] = elements[0].substring(key.length());
 
-        List<AtomicExpression> atomicExprs = extractAtomicExpressions(key, elements);
+        List<AtomicExpression> atomicExprs = extractAtomicExpressions(key, new BeanEvaluator(data), elements);
 
         // We keep the last expression to assign instead of "get".
         AtomicExpression lastExpression = atomicExprs.remove(atomicExprs.size() -1);
