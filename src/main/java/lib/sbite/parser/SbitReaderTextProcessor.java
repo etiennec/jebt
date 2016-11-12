@@ -16,6 +16,9 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
     /**
      * This value sets an approximate text length to match with template text before deciding that the expression value is correctly matched.
      * It's mostly set for performance purpose, we cannot keep the parsed string in memory indefinitely for memory consumption reasons.
+     * <p>
+     *     It has state property and is NOT thread-safe at all.
+     * </p>
      */
     private final static int MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION = 1000;
 
@@ -25,109 +28,147 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
 
     boolean ignoreInstantiationFailures = false;
 
+    private boolean skipRead = false;
+
+    private SbitTextTokenizer.Token templateToken = null;
+
     private Map<String, Factory> factoriesPerBeanPath = new HashMap<String, Factory>();
 
     /**
      * Reads data character by character until it can find an expression in the template.
-     * When that's the case, it reads the data until it can resume matching the post-token template with the source document.
+     * When that's the case, it reads the data until it can resume matching the post-templateToken template with the source document.
      * It then updates data with the document data that was used to fill in the template expression.
      */
     public void extractData(Reader templateReader, Reader documentReader, Map<String, Object> data) {
 
         SbitTextTokenizer tokenizer = new SbitTextTokenizer(templateReader);
 
-        SbitTextTokenizer.Token token = null;
-
-        boolean skipRead = false;
+        skipRead = false;
 
         try {
-            while ((skipRead && token != null) || (token = tokenizer.readNext()) != null) {
-                if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
-                    // EXPRESSION: We must match the document text to find the expression value. So we read the document text until we match the next text to find the end of the expression value.
-                    String expression = token.getText();
-
-                    StringBuilder textToMatch = new StringBuilder();
-
-                    StringBuilder value = new StringBuilder("");
-
-                    // We build the string to match to detect the end of the template value.
-                    while (textToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (token = tokenizer.readNext()) != null && token.getType() == SbitTextTokenizer.TokenType.TEXT) {
-                        textToMatch.append(token.getText());
-                    }
-
-                    if (token != null && token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
-                        // We've already read the next expression, so we should not re-read it upon next loop
-                        skipRead = true;
-                    }
-
-                    if (token != null && textToMatch.length() == 0) {
-                        if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION ) {
-                            // We've found a new expression immediately after the first one ; that's INVALID as it doesn't allow us to match the expression value.
-                            throw new RuntimeException("Found two consecutive Expressions in the template with no text in-between. That's invalid when extracting data from document. {{" + expression + "}} / {{" + token.getText() + "}}");
-                        } else {
-                            // There's something wrong: We should have read some text here.
-                            throw new RuntimeException("Fatal Error: We couldn't retrieve text to match even though there's more text to read from the template. Bug!");
-                        }
-                    }
-
-                    if (token == null && textToMatch.length() == 0) {
-                        // No more data to read from template after the EXPRESSION: Everything left in the document is the expression value.
-                        int i;
-                        while ((i = documentReader.read()) != -1) {
-                            char c = (char) i;
-                            value.append(c);
-                        }
-                        updateData(expression, value.toString(), data);
-                        // We reached the end!
-                        break;
-                    }
-
-
-
-                    // We now read the document and save the value until we can match the text to match and decide that we've got a value.
-                    int i;
-                    int characterToMatchIndex = 0;
-                    char charToMatch = textToMatch.toString().charAt(characterToMatchIndex);
-
-                    while ((i = documentReader.read()) != -1) {
-                        char c = (char)i;
-
-                        if (c == charToMatch) {
-                            // We continue matching the string
-                            ++characterToMatchIndex;
-                            if (characterToMatchIndex >= textToMatch.length()) {
-                                // We matched all the characters of the textToMatch.
-                                break;
-                            }
-
-                            charToMatch = textToMatch.toString().charAt(characterToMatchIndex);
-                        } else {
-                            // It doesn't match --> We're still in the expression value.
-                            if (characterToMatchIndex > 0) {
-                                value.append(textToMatch.toString().substring(0, characterToMatchIndex));
-                            }
-
-                            value.append(c);
-                        }
-                    }
-
-                    updateData(expression, value.toString(), data);
-                } else {
-                    // TEXT - Let's read along the document to make sure the text matches.
-                    Reader toMatchReader = new StringReader(token.getText());
-                    int i;
-                    while ((i = toMatchReader.read()) != -1) {
-                        int j = documentReader.read();
-
-                        if (i !=  j) {
-                            throw new RuntimeException("Character mismatch between the template and the document : "+ i + " / "+ j);
-                        }
-                    }
+            while ((skipRead && templateToken != null) || (templateToken = tokenizer.readNext()) != null) {
+                boolean shouldBreak = processSingleToken(tokenizer, documentReader, data);
+                if (shouldBreak) {
+                    break;
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     *
+     * @return true if loop should break (i.e. processing is finished), false if it should continue to next templateToken.
+     */
+    private boolean processSingleToken(SbitTextTokenizer templateTokenizer, Reader documentReader, Map<String, Object> data) throws IOException {
+
+        if (templateToken.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
+            // EXPRESSION: We must match the document text to find the expression value. So we read the document text until we match the next text to find the end of the expression value.
+            String expression = templateToken.getText();
+
+            StringBuilder textToMatch = new StringBuilder();
+
+            StringBuilder value = new StringBuilder("");
+
+            // We build the string to match to detect the end of the template value.
+            while (textToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (templateToken = templateTokenizer.readNext()) != null && templateToken.getType() == SbitTextTokenizer.TokenType.TEXT) {
+                textToMatch.append(templateToken.getText());
+            }
+
+            if (templateToken != null && templateToken.getType() != SbitTextTokenizer.TokenType.TEXT) {
+                // We've already read the next expression or loop, so we should not re-read it upon next templateToken processing
+                skipRead = true;
+            }
+
+            if (templateToken != null && textToMatch.length() == 0) {
+                if (templateToken.getType() == SbitTextTokenizer.TokenType.EXPRESSION ) {
+                    // We've found a new expression immediately after the first one ; that's INVALID as it doesn't allow us to match the expression value.
+                    throw new RuntimeException("Found two consecutive Expressions in the template with no text in-between. That's invalid when extracting data from document. {{" + expression + "}} / {{" + templateToken.getText() + "}}");
+                } else {
+                    // There's something wrong: We should have read some text here.
+                    throw new RuntimeException("Fatal Error: We couldn't retrieve text to match even though there's more text to read from the template. Bug!");
+                }
+            }
+
+            if (templateToken == null && textToMatch.length() == 0) {
+                // No more data to read from template after the EXPRESSION: Everything left in the document is the expression value.
+                int i;
+                while ((i = documentReader.read()) != -1) {
+                    char c = (char) i;
+                    value.append(c);
+                }
+                updateData(expression, value.toString(), data);
+                // We reached the end!
+                return true;
+            }
+
+            // We now read the document and save the value until we can match the text to match and decide that we've got a value.
+            int i;
+            int characterToMatchIndex = 0;
+            char charToMatch = textToMatch.toString().charAt(characterToMatchIndex);
+
+            while ((i = documentReader.read()) != -1) {
+                char c = (char)i;
+
+                if (c == charToMatch) {
+                    // We continue matching the string
+                    ++characterToMatchIndex;
+                    if (characterToMatchIndex >= textToMatch.length()) {
+                        // We matched all the characters of the textToMatch.
+                        break;
+                    }
+
+                    charToMatch = textToMatch.toString().charAt(characterToMatchIndex);
+                } else {
+                    // It doesn't match --> We're still in the expression value.
+                    if (characterToMatchIndex > 0) {
+                        value.append(textToMatch.toString().substring(0, characterToMatchIndex));
+                    }
+
+                    value.append(c);
+                }
+            }
+
+            updateData(expression, value.toString(), data);
+        } else if (templateToken.getType() == SbitTextTokenizer.TokenType.LOOP) {
+            // LOOP: We have to match the document with the loop inner contents, and detect when we go out of the loop.
+            SbitTextTokenizer.LoopToken loopToken = (SbitTextTokenizer.LoopToken) templateToken;
+
+            StringBuilder loopBreakerTextToMatch = new StringBuilder();
+
+            StringBuilder value = new StringBuilder("");
+
+            // We build the string to match to detect the end of the template value.
+            while (loopBreakerTextToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (templateToken = templateTokenizer.readNext()) != null && templateToken.getType() == SbitTextTokenizer.TokenType.TEXT) {
+                loopBreakerTextToMatch.append(templateToken.getText());
+            }
+
+            if (templateToken != null && templateToken.getType() != SbitTextTokenizer.TokenType.TEXT) {
+                // We've already read the next expression or loop, so we should not re-read it upon next templateToken processing
+                skipRead = true;
+            }
+
+            // We now read text from the document and decide whether we're looking at a loop breaker (i.e. we have exited the loop) or not (we are parsing contents of the loop).
+            // We cannot greedily read the document until we reach the loop breaker, because this content could be too large to fit into memory.
+
+
+        } else if (templateToken.getType() == SbitTextTokenizer.TokenType.TEXT){
+            // TEXT - Let's read along the document to make sure the text matches.
+            Reader toMatchReader = new StringReader(templateToken.getText());
+            int i;
+            while ((i = toMatchReader.read()) != -1) {
+                int j = documentReader.read();
+
+                if (i !=  j) {
+                    throw new RuntimeException("Character mismatch between the template and the document : "+ (char)i + " / "+ (char)j);
+                }
+            }
+        } else {
+            throw new RuntimeException("SbitTextReaderProcessor doesn't know how to process templateToken type "+ templateToken.getType().toString());
+        }
+
+        return false;
     }
 
     private void updateData(String expression, String value, Map<String, Object> data) {

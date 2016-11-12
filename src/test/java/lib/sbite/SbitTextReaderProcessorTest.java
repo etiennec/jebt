@@ -16,11 +16,11 @@ public class SbitTextReaderProcessorTest
     public void testExtractData()
     {
         BaseSbitReader reader = new BaseSbitReader() {
-            @Override
-            public Map<String, Object> readData() {
-                return null;
-            }
-        };
+        @Override
+        public Map<String, Object> readData() {
+            return null;
+        }
+    };
 
         Map<String, Object> data = new HashMap<String, Object>();
 
@@ -67,6 +67,27 @@ public class SbitTextReaderProcessorTest
         assertEquals(null, data.get("theMap"));
         reader.extractData("Hi {{theMap(\"customer\").name}}", "Hi Barry", data);
         assertEquals("Barry",  ((Customer)((Map)data.get("theMap")).get("customer")).name);
+    }
+
+    @Test
+    public void testExtractLoopData() {
+
+        BaseSbitReader reader = new BaseSbitReader() {
+            @Override
+            public Map<String, Object> readData() {
+                return null;
+            }
+        };
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        // Basic loop string values on array
+        data.put("colors", new String[3]);
+        reader.extractData("Colors: {[colors|color]}{{color}},{[]}.", "Colors: red,green,blue,.", data);
+        assertEquals("red", ((String[])data.get("colors"))[0]);
+        assertEquals("green", ((String[])data.get("colors"))[1]);
+        assertEquals("blue", ((String[])data.get("colors"))[2]);
+
     }
 
     public class Customer {
