@@ -2,6 +2,7 @@ package lib.sbite;
 
 import lib.sbite.parser.SbitParseException;
 import lib.sbite.parser.SbitTextTokenizer;
+import lib.sbite.parser.Token;
 import org.junit.Test;
 
 import java.io.StringReader;
@@ -24,7 +25,7 @@ public class SbitTokenizerTest {
 
         SbitTextTokenizer tokenizer = new SbitTextTokenizer(reader);
 
-        List<SbitTextTokenizer.Token> tokens = tokenizer.readAll();
+        List<Token> tokens = tokenizer.readAll();
 
         assertTrue(!tokens.isEmpty());
 
@@ -51,7 +52,7 @@ public class SbitTokenizerTest {
 
         SbitTextTokenizer tokenizer = new SbitTextTokenizer(reader);
 
-        List<SbitTextTokenizer.Token> tokens = tokenizer.readAll();
+        List<Token> tokens = tokenizer.readAll();
 
         assertTrue(!tokens.isEmpty());
         assertEquals(3, tokens.size());

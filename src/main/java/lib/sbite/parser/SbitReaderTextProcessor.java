@@ -28,9 +28,9 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
 
     boolean ignoreInstantiationFailures = false;
 
-    private boolean skipRead = false;
+    private boolean skipReadNextTemplateToken = false;
 
-    private SbitTextTokenizer.Token templateToken = null;
+    private Token templateToken = null;
 
     private Map<String, Factory> factoriesPerBeanPath = new HashMap<String, Factory>();
 
@@ -43,10 +43,10 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
 
         SbitTextTokenizer tokenizer = new SbitTextTokenizer(templateReader);
 
-        skipRead = false;
+        skipReadNextTemplateToken = false;
 
         try {
-            while ((skipRead && templateToken != null) || (templateToken = tokenizer.readNext()) != null) {
+            while ((skipReadNextTemplateToken && templateToken != null) || (templateToken = tokenizer.readNext()) != null) {
                 boolean shouldBreak = processSingleToken(tokenizer, documentReader, data);
                 if (shouldBreak) {
                     break;
@@ -63,7 +63,7 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
      */
     private boolean processSingleToken(SbitTextTokenizer templateTokenizer, Reader documentReader, Map<String, Object> data) throws IOException {
 
-        if (templateToken.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
+        if (templateToken.getType() == Token.TokenType.EXPRESSION) {
             // EXPRESSION: We must match the document text to find the expression value. So we read the document text until we match the next text to find the end of the expression value.
             String expression = templateToken.getText();
 
@@ -72,17 +72,17 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
             StringBuilder value = new StringBuilder("");
 
             // We build the string to match to detect the end of the template value.
-            while (textToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (templateToken = templateTokenizer.readNext()) != null && templateToken.getType() == SbitTextTokenizer.TokenType.TEXT) {
+            while (textToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (templateToken = templateTokenizer.readNext()) != null && templateToken.getType() == Token.TokenType.TEXT) {
                 textToMatch.append(templateToken.getText());
             }
 
-            if (templateToken != null && templateToken.getType() != SbitTextTokenizer.TokenType.TEXT) {
+            if (templateToken != null && templateToken.getType() != Token.TokenType.TEXT) {
                 // We've already read the next expression or loop, so we should not re-read it upon next templateToken processing
-                skipRead = true;
+                skipReadNextTemplateToken = true;
             }
 
             if (templateToken != null && textToMatch.length() == 0) {
-                if (templateToken.getType() == SbitTextTokenizer.TokenType.EXPRESSION ) {
+                if (templateToken.getType() == Token.TokenType.EXPRESSION ) {
                     // We've found a new expression immediately after the first one ; that's INVALID as it doesn't allow us to match the expression value.
                     throw new RuntimeException("Found two consecutive Expressions in the template with no text in-between. That's invalid when extracting data from document. {{" + expression + "}} / {{" + templateToken.getText() + "}}");
                 } else {
@@ -131,7 +131,7 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
             }
 
             updateData(expression, value.toString(), data);
-        } else if (templateToken.getType() == SbitTextTokenizer.TokenType.LOOP) {
+        } else if (templateToken.getType() == Token.TokenType.LOOP) {
             // LOOP: We have to match the document with the loop inner contents, and detect when we go out of the loop.
             SbitTextTokenizer.LoopToken loopToken = (SbitTextTokenizer.LoopToken) templateToken;
 
@@ -140,20 +140,35 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
             StringBuilder value = new StringBuilder("");
 
             // We build the string to match to detect the end of the template value.
-            while (loopBreakerTextToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (templateToken = templateTokenizer.readNext()) != null && templateToken.getType() == SbitTextTokenizer.TokenType.TEXT) {
+            while (loopBreakerTextToMatch.length() <= MAX_TEXT_LENGTH_TO_STOP_MATCHING_EXPRESSION && (templateToken = templateTokenizer.readNext()) != null && templateToken.getType() == Token.TokenType.TEXT) {
                 loopBreakerTextToMatch.append(templateToken.getText());
             }
 
-            if (templateToken != null && templateToken.getType() != SbitTextTokenizer.TokenType.TEXT) {
+            if (templateToken != null && templateToken.getType() != Token.TokenType.TEXT) {
                 // We've already read the next expression or loop, so we should not re-read it upon next templateToken processing
-                skipRead = true;
+                skipReadNextTemplateToken = true;
             }
 
             // We now read text from the document and decide whether we're looking at a loop breaker (i.e. we have exited the loop) or not (we are parsing contents of the loop).
             // We cannot greedily read the document until we reach the loop breaker, because this content could be too large to fit into memory.
+            boolean isLoopBreakerFound = false;
+            while (!isLoopBreakerFound) {
+                String documentContent = tryToMatchLoopBreaker(documentReader, loopBreakerTextToMatch.toString());
+
+                if (documentContent == null) {
+                    // We successfully matched the loopbreaker
+                    isLoopBreakerFound = true;
+                    continue;
+                }
+
+                // If we haven't found the loop breaker, it means that we have to match the document to one element of the loop.
+                // We start by injecting what we've read from the document back into the reader.
+                documentReader = new ReaderWithTextAtTheBeginning(documentContent, documentReader);
+
+            }
 
 
-        } else if (templateToken.getType() == SbitTextTokenizer.TokenType.TEXT){
+        } else if (templateToken.getType() == Token.TokenType.TEXT){
             // TEXT - Let's read along the document to make sure the text matches.
             Reader toMatchReader = new StringReader(templateToken.getText());
             int i;
@@ -169,6 +184,47 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
         }
 
         return false;
+    }
+
+    /**
+     * Tries to match the passed string against the reader. If it succeeds, return null, if it fails, return the text already read from the reader.
+     * @return null if the text matches against the document, or the text already read from the reader if it doesn't match.
+     */
+    private String tryToMatchLoopBreaker(Reader documentReader, String loopBreakerTextToMatch) {
+        Reader loopTextReader = new StringReader(loopBreakerTextToMatch);
+
+        StringBuilder documentContent = new StringBuilder();
+
+        try {
+            while (true) {
+
+                int loopTextChar = loopTextReader.read();
+
+                if (loopTextChar == -1) {
+                    // We reached the end of the loop text; if we're still here, it means it's a match.
+                    return null;
+                }
+
+                int docChar = documentReader.read();
+                documentContent.append(((char)docChar));
+
+                if (docChar == -1) {
+                    // we reached the end of the document before the end of the loop text;
+                    // This means that it's a critical failure since we shouldn't end the document before matching the rest of the template
+                    throw new SbitParseException("Reached the end of the document before we could find the loop breaker text '"+loopBreakerTextToMatch+"'");
+                }
+
+                if (docChar != loopTextChar) {
+                    // No match!
+                    return documentContent.toString();
+                }
+
+                // By then we have both character matching, so we continue reading.
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void updateData(String expression, String value, Map<String, Object> data) {
@@ -290,4 +346,35 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
         this.factoriesPerBeanPath.put(beanPath, factory);
     }
 
+    private class ReaderWithTextAtTheBeginning extends Reader {
+
+        private boolean hasReachedPrefixReaderEnd = false;
+        private Reader prefixReader;
+        private Reader documentReader;
+
+        public ReaderWithTextAtTheBeginning(String prefixString, Reader documentReader) {
+            this.prefixReader = new StringReader(prefixString);
+            this.documentReader = documentReader;
+        }
+
+        @Override
+        public int read(char[] cbuf, int off, int len) throws IOException {
+            if (!hasReachedPrefixReaderEnd) {
+                int value = prefixReader.read(cbuf, off, len);
+                if (value == -1) {
+                    hasReachedPrefixReaderEnd = true;
+                } else {
+                    return value;
+                }
+            }
+
+            return documentReader.read(cbuf, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            prefixReader.close();
+            documentReader.close();
+        }
+    }
 }

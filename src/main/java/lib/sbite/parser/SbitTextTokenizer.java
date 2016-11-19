@@ -1,5 +1,6 @@
 package lib.sbite.parser;
 
+import lib.sbite.parser.Token.TokenType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * Reads through text, and returns tokens containing either some text, or a Sbet template expression. Text token have a limited max size. Expression don't, and are always returned as a whole.
  */
-public class SbitTextTokenizer {
+public class SbitTextTokenizer implements SbitTokenizer {
 
     private Reader reader;
 
@@ -24,7 +25,7 @@ public class SbitTextTokenizer {
 
 
 
-    public enum TokenType {TEXT, EXPRESSION, LOOP};
+
 
     public SbitTextTokenizer(Reader reader) {
         this.reader = reader;
@@ -52,6 +53,7 @@ public class SbitTextTokenizer {
      *
      * @return the next Token (TEXT or EXPRESSION) or null if reached the end of the Reader.
      */
+    @Override
     public Token readNext() {
 
         try {
@@ -298,24 +300,7 @@ public class SbitTextTokenizer {
         return new Token(TokenType.TEXT, "{{"+expression.toString());
     }
 
-    public class Token {
 
-        public Token(TokenType type, String text) {
-            this.type = type;
-            this.text = text;
-        }
-
-        private TokenType type;
-        protected String text;
-
-        public TokenType getType() {
-            return type;
-        }
-
-        public String getText() {
-            return text;
-        }
-    }
 
     /**
      * A Loop token will iterate over the contents of a Collection (or array) bean, one by one.<br>

@@ -26,7 +26,7 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
 
         SbitTextTokenizer tokenizer = new SbitTextTokenizer(sourceText);
 
-        SbitTextTokenizer.Token token;
+        Token token;
 
         try {
             while ((token = tokenizer.readNext()) != null) {
@@ -37,10 +37,10 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
         }
     }
 
-    private void processToken(SbitTextTokenizer.Token token, Writer outText, Map<String, Object> data) throws IOException{
-        if (token.getType() == SbitTextTokenizer.TokenType.EXPRESSION) {
+    private void processToken(Token token, Writer outText, Map<String, Object> data) throws IOException{
+        if (token.getType() == Token.TokenType.EXPRESSION) {
             outText.append(evaluateExpression(token.getText(), data));
-        } else if (token.getType() == SbitTextTokenizer.TokenType.LOOP) {
+        } else if (token.getType() == Token.TokenType.LOOP) {
             SbitTextTokenizer.LoopToken loop = (SbitTextTokenizer.LoopToken)token;
             Object bean = evaluateBean(loop.getCollectionBeanPath(), data);
             if (bean == null) {
@@ -62,7 +62,7 @@ public class SbitWriterTextProcessor extends SbitCommonTextProcessor {
                 Map<String, Object> dataCopy = new HashMap<String, Object>(data);
                 dataCopy.put(loop.getItemBeanName(), obj);
 
-                for (SbitTextTokenizer.Token tok : loop.getLoopTokens()) {
+                for (Token tok : loop.getLoopTokens()) {
                     processToken(tok, outText, dataCopy);
                 }
             }
