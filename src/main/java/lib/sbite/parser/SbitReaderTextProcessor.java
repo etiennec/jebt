@@ -183,21 +183,35 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
 
                 Object loopedItem = null;
                 if (loopedCollectionBean instanceof List) {
-                    loopedItem = ((List)loopedCollectionBean).get(loopedBeanIndex);
+                    List loopedCollectionList = (List) loopedCollectionBean;
+                    while (loopedCollectionList.size() <= loopedBeanIndex) {
+                        // The list is not large enough, we have to add more data to it.
+                        loopedCollectionList.add(null);
+                    }
+                    loopedItem = loopedCollectionList.get(loopedBeanIndex);
                     if (loopedItem == null) {
-                        // TODO
-                        throw new RuntimeException("TODO - instantiate new List item object");
+                        loopedItem = instantiateObject(loopToken.getCollectionBeanPath()+"[]", null);
+                        loopedCollectionList.add(loopedBeanIndex, loopedItem);
                     }
                 } else {
                     // Array
-                    loopedItem = ((Object[])loopedCollectionBean)[loopedBeanIndex];
+                    Object[] loopedCollectionArray = (Object[])loopedCollectionBean;
+                    if (loopedCollectionArray.length <= loopedBeanIndex) {
+                        // The array is not large enough, and we do not want to extend it. Use a list instead for non-fixed sized!
+                        throw new SbitEvaluationException("The array "+loopToken.getCollectionBeanPath()+" only has a size of "+loopedCollectionArray.length+" but there are more elements to store in it");
+                    }
+                    loopedItem = loopedCollectionArray[loopedBeanIndex];
                     if (loopedItem == null) {
-                        // TODO
-                        throw new RuntimeException("TODO - instantiate new array item object");
+                        loopedItem = instantiateObject(loopToken.getCollectionBeanPath()+"[]", null);
+                        loopedCollectionArray[loopedBeanIndex] = loopedItem;
                     }
                 }
 
-                loopedBeanIndex++;
+                if (loopedItem == null) {
+                    throw new SbitEvaluationException("We couldn't instantiate the item in the collection "+loopToken.getCollectionBeanPath());
+                }
+
+
 
                 data.put(loopToken.getItemBeanName(), loopedItem);
 
@@ -225,6 +239,18 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
                 SbitReaderTextProcessor loopContentProcessor = new SbitReaderTextProcessor();
                 loopContentProcessor.extractData(tokenListTokenizer, documentReader, data);
 
+                // If the object is a string (or another immutable type), we'll need to set it back in the collection.
+                // This won't hurt for other object types either.
+                if (loopedCollectionBean instanceof List) {
+                    List loopedCollectionList = (List) loopedCollectionBean;
+                    loopedCollectionList.add(loopedBeanIndex, data.get(loopToken.getItemBeanName()));
+                } else {
+                    // Array
+                    Object[] loopedCollectionArray = (Object[])loopedCollectionBean;
+                    loopedCollectionArray[loopedBeanIndex] = data.get(loopToken.getItemBeanName());
+                }
+
+                loopedBeanIndex++;
             }
 
 
