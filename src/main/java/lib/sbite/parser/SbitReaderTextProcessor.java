@@ -41,13 +41,18 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
      */
     public void extractData(Reader templateReader, Reader documentReader, Map<String, Object> data) {
 
-        SbitTextTokenizer tokenizer = new SbitTextTokenizer(templateReader);
+        SbitTextTokenizer templateTokenizer = new SbitTextTokenizer(templateReader);
 
+        extractData(templateTokenizer, documentReader, data);
+
+    }
+
+    public void extractData(SbitTokenizer templateTokenizer, Reader documentReader, Map<String, Object> data) {
         skipReadNextTemplateToken = false;
 
         try {
-            while ((skipReadNextTemplateToken && templateToken != null) || (templateToken = tokenizer.readNext()) != null) {
-                boolean shouldBreak = processSingleToken(tokenizer, documentReader, data);
+            while ((skipReadNextTemplateToken && templateToken != null) || (templateToken = templateTokenizer.readNext()) != null) {
+                boolean shouldBreak = processSingleToken(templateTokenizer, documentReader, data);
                 if (shouldBreak) {
                     break;
                 }
@@ -61,7 +66,7 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
      *
      * @return true if loop should break (i.e. processing is finished), false if it should continue to next templateToken.
      */
-    private boolean processSingleToken(SbitTextTokenizer templateTokenizer, Reader documentReader, Map<String, Object> data) throws IOException {
+    private boolean processSingleToken(SbitTokenizer templateTokenizer, Reader documentReader, Map<String, Object> data) throws IOException {
 
         if (templateToken.getType() == Token.TokenType.EXPRESSION) {
             // EXPRESSION: We must match the document text to find the expression value. So we read the document text until we match the next text to find the end of the expression value.
@@ -133,7 +138,7 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
             updateData(expression, value.toString(), data);
         } else if (templateToken.getType() == Token.TokenType.LOOP) {
             // LOOP: We have to match the document with the loop inner contents, and detect when we go out of the loop.
-            SbitTextTokenizer.LoopToken loopToken = (SbitTextTokenizer.LoopToken) templateToken;
+            final SbitTextTokenizer.LoopToken loopToken = (SbitTextTokenizer.LoopToken) templateToken;
 
             StringBuilder loopBreakerTextToMatch = new StringBuilder();
 
@@ -152,6 +157,8 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
             // We now read text from the document and decide whether we're looking at a loop breaker (i.e. we have exited the loop) or not (we are parsing contents of the loop).
             // We cannot greedily read the document until we reach the loop breaker, because this content could be too large to fit into memory.
             boolean isLoopBreakerFound = false;
+            Object loopedCollectionBean = null; // Must be array or list
+            int loopedBeanIndex = 0;
             while (!isLoopBreakerFound) {
                 String documentContent = tryToMatchLoopBreaker(documentReader, loopBreakerTextToMatch.toString());
 
@@ -161,9 +168,62 @@ public class SbitReaderTextProcessor extends SbitCommonTextProcessor {
                     continue;
                 }
 
+                if (loopedCollectionBean == null) {
+                    loopedCollectionBean = new BeanEvaluator(data).evaluateBean(loopToken.getCollectionBeanPath());
+                    if (loopedCollectionBean == null) {
+                        loopedCollectionBean = instantiateObject(loopToken.getCollectionBeanPath(), null);
+                    }
+                    if (loopedCollectionBean == null) {
+                        throw new SbitEvaluationException("Couldn't instantiate collection "+loopToken.getCollectionBeanPath());
+                    }
+                    if (!(loopedCollectionBean instanceof List) && !(loopedCollectionBean.getClass().isArray())) {
+                        throw new SbitEvaluationException("Looped object "+loopToken.getCollectionBeanPath()+" should be an array or a List but it's a " +loopedCollectionBean.getClass().toString());
+                    }
+                }
+
+                Object loopedItem = null;
+                if (loopedCollectionBean instanceof List) {
+                    loopedItem = ((List)loopedCollectionBean).get(loopedBeanIndex);
+                    if (loopedItem == null) {
+                        // TODO
+                        throw new RuntimeException("TODO - instantiate new List item object");
+                    }
+                } else {
+                    // Array
+                    loopedItem = ((Object[])loopedCollectionBean)[loopedBeanIndex];
+                    if (loopedItem == null) {
+                        // TODO
+                        throw new RuntimeException("TODO - instantiate new array item object");
+                    }
+                }
+
+                loopedBeanIndex++;
+
+                data.put(loopToken.getItemBeanName(), loopedItem);
+
+
                 // If we haven't found the loop breaker, it means that we have to match the document to one element of the loop.
                 // We start by injecting what we've read from the document back into the reader.
                 documentReader = new ReaderWithTextAtTheBeginning(documentContent, documentReader);
+
+                final List<Token> loopTokens = loopToken.getLoopTokens();
+
+                SbitTokenizer tokenListTokenizer = new SbitTokenizer() {
+
+                    Iterator<Token> tokens = loopToken.getLoopTokens().iterator();
+
+                    @Override
+                    public Token readNext() {
+                        if (!tokens.hasNext()) {
+                            return null;
+                        }
+
+                        return tokens.next();
+                    }
+                };
+
+                SbitReaderTextProcessor loopContentProcessor = new SbitReaderTextProcessor();
+                loopContentProcessor.extractData(tokenListTokenizer, documentReader, data);
 
             }
 

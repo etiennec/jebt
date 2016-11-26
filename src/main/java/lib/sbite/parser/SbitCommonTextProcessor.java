@@ -100,7 +100,7 @@ public abstract class SbitCommonTextProcessor {
                     keyObj = keyStr.substring(1, keyStr.length()-1);
                 } else {
                     // Expression
-                    keyObj = evaluator.evaluate(keyStr);
+                    keyObj = evaluator.evaluateExpression(keyStr);
                 }
 
                 final Object key = keyObj;

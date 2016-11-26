@@ -14,7 +14,11 @@ public class BeanEvaluator {
     }
 
 
-    public Object evaluate(String expr) {
+    public String evaluateExpression(String expr) {
         return new SbitWriterTextProcessor().evaluateExpression(expr, data);
+    }
+
+    public Object evaluateBean(String expr) {
+        return new SbitWriterTextProcessor().evaluateBean(expr, data);
     }
 }
