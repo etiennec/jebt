@@ -1,0 +1,14 @@
+{
+  "stringName": "World",
+  "customers": [
+    null,
+    null,
+    {
+      "address": {
+        "fields": {
+          "postalCode": 200093
+        }
+      }
+    }
+  ]
+}

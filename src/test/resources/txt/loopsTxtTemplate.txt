@@ -1,9 +1,13 @@
 Sbite can loop on arrays or Iterables.
-Hello customers{[customers|customer]} {{customer.name}}{[]}!
+Hello customers{[customers|customer]} "{{customer.name}}"{[]}!
 
 You can also do nested loops:
 Showing customer information & addresses:
+
 {[customers|customer]}Customer Name: {{customer.name}}
 Address information:
-{[customer.address.fields.keySet()|addressKey]}- {{addressKey}}:{{customer.address.fields(addressKey)}}
-{[addressKey]}{[customer]}
+Postal Code: {{customer.fields.postalCode}}
+Street: {{customer.fields.Street}}
+Street Number: {{customer.fields.Street number}}
+
+{[customer]}
