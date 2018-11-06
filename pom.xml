@@ -2,12 +2,24 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>lib.sbet</groupId>
-  <artifactId>sbet</artifactId>
+  <groupId>lib.jebt</groupId>
+  <artifactId>jebt</artifactId>
   <version>0.1</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <packaging>jar</packaging>
 
-  <name>sbet</name>
+  <name>jebt</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -25,12 +37,12 @@
     <dependency>
       <artifactId>poi</artifactId>
       <groupId>org.apache.poi</groupId>
-      <version>3.14</version>
+      <version>3.17</version>
     </dependency>
     <dependency>
       <artifactId>poi-ooxml</artifactId>
       <groupId>org.apache.poi</groupId>
-      <version>3.14</version>
+      <version>3.17</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -38,9 +50,9 @@
       <version>3.4</version>
     </dependency>
     <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>1.9.2</version>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
     </dependency>
 
   </dependencies>
