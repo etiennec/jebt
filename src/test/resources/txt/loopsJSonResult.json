@@ -1,31 +1,31 @@
 {
-  "customers": [
-    {
-      "name": "customer 0",
-      "address": {
-        "fields": {
-          "postalCode": "200091",
-          "Street number": "123"
-        }
-      }
-    },
-    {
-      "name": "customer 1",
-      "address": {
-        "fields": {
-          "postalCode": "123456"
-        }
-      }
-    },
-    {
-      "name": "customer 2",
-      "address": {
-        "fields": {
-          "postalCode": "200093",
-          "Street": "Broadway",
-          "Street number": "1"
-        }
+  "customers": [{
+    "name": "customer 0",
+    "address": {
+      "fields": {
+        "postalCode": 200091,
+        "Street": "null",
+        "Street number": 123
       }
     }
+  }, {
+    "name": "customer 1",
+    "address": {
+      "fields": {
+        "postalCode": 123456,
+        "Street": "-",
+        "Street number": "-"
+      }
+    }
+  }, {
+    "name": "customer 2",
+    "address": {
+      "fields": {
+        "postalCode": 200093,
+        "Street": "Broadway",
+        "Street number": 1
+      }
+    }
+  }
   ]
 }

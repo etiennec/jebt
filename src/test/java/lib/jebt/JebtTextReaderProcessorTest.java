@@ -1,6 +1,5 @@
 package lib.jebt;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
@@ -8,7 +7,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
 
 public class JebtTextReaderProcessorTest {
 

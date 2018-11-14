@@ -314,7 +314,7 @@ public class JebtTextTokenizer implements JebtTokenizer {
      *     The closing tag is {[variable_name]} to finish the loop of a specific variable name, or just {[]} to close the currently opened loop.
      *     Within the loop, the current item of the collection will be referred to by a string "loop_item_name" defined as part of the loop tag.
      */
-    public class LoopToken extends Token {
+    public static class LoopToken extends Token {
 
         // Note that innerTokens are not supposed to end with EOD token - end of loop doesn't mean end of document.
         private List<Token> innerTokens = new ArrayList<Token>();

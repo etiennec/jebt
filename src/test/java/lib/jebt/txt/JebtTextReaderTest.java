@@ -16,40 +16,60 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class JebtTextReaderTest extends BaseTextTest implements TestConstants
+/**
+ * This Test will use txt files in /test/resources/txt.
+ *
+ * It will read the file *TxtTemplateResult.txt and will generate JSon based on template *TxtTemplate.txt.
+ * JSon will be compared to *JSonResult.json.
+ *
+ * If no *JSonResult.json exists, we will just generate the data and fail if any error occurs during document generation.
+ */
+public class JebtTextReaderTest
 {
 
     @Test
     /**
-     * This Test will automatically test all txt files in /test/resources/txt.
-     *
-     * It will read the file *TxtTemplateResult.txt and will generate JSon based on template *TxtTemplate.txt.
-     * JSon will be compared to *JSonResult.json.
-     *
-     * If no *JSonResult.json exists, we will just generate the data and fail if any error occurs during document generation.
+     * Basic templating : single expressions
      */
-    public void testRead() throws Exception
+    public void testBasic() throws Exception
     {
-        for (String templateName : getAllTestTemplateNames()) {
-            testTxtTemplate(templateName);
-        }
+            testTxtTemplate("basicTxtTemplate.txt", "basicTxtTemplateResult.txt", "basicJSonResult.json");
     }
 
-    private void testTxtTemplate(String templateName) throws Exception {
-        System.out.println("## Testing Reader template name "+templateName);
+    @Test
+    /**
+     * Single Loops, including loops on complex objects and no text to match at the end
+     */
+    public void testLoopsWithNoTextToMatchAtTheEnd() throws Exception
+    {
+        testTxtTemplate("loopsNoEndTextTxtTemplate.txt", "loopsNoEndTextTxtTemplateResult.txt", "loopsJSonResult.json");
+    }
 
-        Reader templateReader = TestUtils.getFileReader("/txt/"+templateName+TXT_TEMPLATE_FILE_SUFFIX);
+    @Test
+    /**
+     * Single Loops, including loops on complex objects
+     */
+    public void testLoops() throws Exception
+    {
+        testTxtTemplate("loopsTxtTemplate.txt", "loopsTxtTemplateResult.txt", "loopsJSonResult.json");
+    }
 
-        Reader docReader = TestUtils.getFileReader("/txt/"+templateName+TXT_RESULT_TEMPLATE_FILE_SUFFIX);
+
+    private void testTxtTemplate(String templateFile, String documentFile, String jsonResultFile) throws Exception {
+        System.out.println("## Testing Reader template name "+templateFile);
+
+        Reader templateReader = TestUtils.getFileReader("/txt/"+templateFile);
+
+        Reader docReader = TestUtils.getFileReader("/txt/"+documentFile);
 
         JebtTextReader jr = new JebtTextReader(templateReader, docReader);
         JSONObject data = new JSONObject(jr.readData());
 
         Reader targetJSonReader;
 
-        try {
-            targetJSonReader = TestUtils.getFileReader("/txt/"+templateName+JSON_RESULT_FILE_SUFFIX);
-        } catch (RuntimeException e) {
+        if (jsonResultFile != null) {
+            targetJSonReader = TestUtils.getFileReader("/txt/"+jsonResultFile);
+        } else {
             // No target JSon file, skipping comparison.
             return;
         }

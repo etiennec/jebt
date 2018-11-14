@@ -22,4 +22,3 @@ Postal Code: 200093
 Street: Broadway
 Street Number: 1
 
-And That's It!

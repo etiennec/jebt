@@ -1,5 +1,8 @@
 package lib.jebt.parser;
 
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+
 /**
  * Represents one token read while going through a Jebt template.
  */
@@ -17,13 +20,27 @@ public class Token {
         this.text = text;
     }
 
+    public Token(XSSFCell cell) {
+
+        if (cell == null) {
+            this.type = TokenType.NEW_NON_TEXT_CELL;
+        } else if (cell.getCellTypeEnum() == CellType.STRING) {
+            this.type = TokenType.NEW_TEXT_CELL;
+        } else {
+            this.type = TokenType.NEW_NON_TEXT_CELL;
+        }
+        this.cell = cell;
+    }
+
+    // USed only by EOD.
     private Token() {
         this.type = TokenType.END_OF_DOCUMENT;
         this.text = null;
     }
 
     private TokenType type;
-    protected String text;
+    private String text;
+    private XSSFCell cell;
 
     public TokenType getType() {
         return type;
@@ -33,5 +50,9 @@ public class Token {
         return text;
     }
 
-    public enum TokenType {TEXT, EXPRESSION, LOOP, NEW_CELL, NEW_ROW, END_OF_DOCUMENT}
+    public XSSFCell getCell() {
+        return cell;
+    }
+
+    public enum TokenType {TEXT, EXPRESSION, LOOP, NEW_TEXT_CELL, NEW_NON_TEXT_CELL, NEW_ROW, END_OF_DOCUMENT}
 }

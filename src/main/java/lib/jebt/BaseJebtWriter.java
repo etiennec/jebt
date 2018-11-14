@@ -1,6 +1,7 @@
 package lib.jebt;
 
 import lib.jebt.parser.JebtWriterTextProcessor;
+import lib.jebt.parser.JsonPathResolver;
 
 import java.io.*;
 import java.util.Map;
@@ -27,9 +28,13 @@ public abstract class BaseJebtWriter implements JebtWriter {
         return writer.toString();
     }
 
+    public String evaluateExpression(String jsonPath, Map data) {
+        return new JsonPathResolver(data).evaluatePathToString(jsonPath);
+    }
+
     /**
      * API to be used when the amount of text can be very large and shouldn't be stored into memory.<br>
-     *     If the text is rather small (for example, text in an Excel Cell), you'd better use {@link #convertString(String, JSONObject)}.
+     *     If the text is rather small (for example, text in an Excel Cell), you'd better use {@link #convertString(String, Map)}.
      *
      * @param sourceText A reader that reads template text.
      * @param outText A writer where we will write down the source text with all templating elements resolved.

@@ -7,13 +7,4 @@ package lib.jebt;
 public interface TestConstants {
 
     String TEST_RESOURCES_PATH = "src/test/resources";
-
-    String TXT_TEMPLATE_FILE_SUFFIX = "TxtTemplate.txt";
-
-    String TXT_RESULT_TEMPLATE_FILE_SUFFIX = "TxtTemplateResult.txt";
-
-    String JSON_DATA_FILE_SUFFIX = "JSonData.json";
-
-    String JSON_RESULT_FILE_SUFFIX = "JSonResult.json";
-
 }

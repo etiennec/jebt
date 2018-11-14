@@ -4,7 +4,7 @@ import org.junit.*;
 
 import static org.junit.Assert.assertTrue;
 
-public class SbiteReaderTest
+public class SbiteXlsxReaderTest
 {
 
     @Test

@@ -1,0 +1,20 @@
+{
+	"stringName": "World",
+	"customers": [{
+			"name": "Customer 1",
+			"country": "China",
+			"aliases": ["bibi", "bobo", "baba"],
+			"friends": [{"name":"Customer 4"},{"name":"Customer 8"}]
+		}, {
+			"name": "Customer 2",
+			"country": "Japan",
+			"aliases": ["didi", "dada"],
+			"friends": []
+		}, {
+			"name": "Customer 3",
+			"country": "Korea",
+			"aliases": ["toto"],
+			"friends": [{"name":"Customer 7"}]
+		}
+	]
+}

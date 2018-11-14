@@ -14,28 +14,33 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
-public class JebtTextWriterTest extends BaseTextTest implements TestConstants
+/**
+ * These Tests will test all txt files in /test/resources/txt.
+ *
+ * It will fill the *txtTemplate.txt files with the json from *JSonData.json, and will compare results with *txtTemplateResult.txt.
+ */
+public class JebtTextWriterTest
 {
 
     @Test
-    /**
-     * This Test will automatically test all txt files in /test/resources/txt.
-     *
-     * It will fill the *txtTemplate.txt files with the json from *JSonData.json, and will compare results with *txtTemplateResult.txt.
-     * If no JSon file exists, it will use defaultJSonData.json.
-     */
-    public void testWriteAllTxt() throws Exception {
-
-        for (String templateName : getAllTestTemplateNames()) {
-            testTxtTemplate(templateName);
-        }
-
+    public void testBasic() throws Exception {
+            testTxtTemplate("basicTxtTemplate.txt", "basicTxtTemplateResult.txt", "basicJSonResult.json");
     }
 
-    private void testTxtTemplate(String templateName) throws Exception {
-        System.out.println("## Testing Writer template name "+templateName);
+    @Test
+    public void testLoops() throws Exception {
+        testTxtTemplate("loopsTxtTemplate.txt", "loopsTxtTemplateResult.txt", "loopsJSonResult.json");
+    }
 
-        Map data = (Map)new JSONParser().parse(getJSONDataFileReader(templateName), new ContainerFactory() {
+    @Test
+    public void testLoopsNoEndText() throws Exception {
+        testTxtTemplate("loopsNoEndTextTxtTemplate.txt", "loopsNoEndTextTxtTemplateResult.txt", "loopsJSonResult.json");
+    }
+
+    private void testTxtTemplate(String templateFile, String documentFile, String jsonDataFile) throws Exception {
+        System.out.println("## Testing XLSX Writer template name " + templateFile);
+
+        Map data = (Map)new JSONParser().parse(TestUtils.getFileReader("/xlsx/"+jsonDataFile), new ContainerFactory() {
             @Override public Map createObjectContainer() {
                 return new LinkedHashMap();
             }
@@ -45,7 +50,7 @@ public class JebtTextWriterTest extends BaseTextTest implements TestConstants
             }
         });
 
-        Reader templateReader = TestUtils.getFileReader("/txt/"+templateName+TXT_TEMPLATE_FILE_SUFFIX);
+        Reader templateReader = TestUtils.getFileReader("/xlsx/"+templateFile);
 
         StringWriter output = new StringWriter();
 
@@ -57,7 +62,7 @@ public class JebtTextWriterTest extends BaseTextTest implements TestConstants
 
         StringBuilder expectedResult = new StringBuilder();
 
-        Reader solutionReader = TestUtils.getFileReader("/txt/"+templateName+TXT_RESULT_TEMPLATE_FILE_SUFFIX);
+        Reader solutionReader = TestUtils.getFileReader("/txt/"+documentFile);
         int intValueOfChar;
         while ((intValueOfChar = solutionReader.read()) != -1) {
             expectedResult.append((char) intValueOfChar);
@@ -69,16 +74,7 @@ public class JebtTextWriterTest extends BaseTextTest implements TestConstants
         assertEquals(expectedResult.toString(), actualResult);
     }
 
-    private Reader getJSONDataFileReader(String templateName) {
 
-        File f = new File("/txt/"+templateName+JSON_DATA_FILE_SUFFIX);
-
-        if (!f.exists()) {
-            templateName = "default";
-        }
-
-        return TestUtils.getFileReader("/txt/"+templateName+JSON_DATA_FILE_SUFFIX);
-    }
 
 
 }

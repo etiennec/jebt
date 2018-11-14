@@ -10,4 +10,4 @@ Postal Code: {{customer.address.fields.postalCode}}
 Street: {{customer.address.fields.Street}}
 Street Number: {{customer.address.fields.Street number}}
 
-{[customer]}And That's It!
+{[customer]}

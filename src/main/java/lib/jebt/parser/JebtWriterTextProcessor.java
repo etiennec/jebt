@@ -1,12 +1,12 @@
 package lib.jebt.parser;
 
-import org.json.simple.JSONArray;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,11 +39,11 @@ public class JebtWriterTextProcessor extends JebtCommonTextProcessor {
             outText.append(new JsonPathResolver(data).evaluatePathToString(token.getText()));
         } else if (token.getType() == Token.TokenType.LOOP) {
             JebtTextTokenizer.LoopToken loop = (JebtTextTokenizer.LoopToken)token;
-            JSONArray collection = null;
+            List collection = null;
             try {
-                collection = (JSONArray)new JsonPathResolver(data).evaluatePathToObject(loop.getCollectionJsonPath());
+                collection = (List)new JsonPathResolver(data).evaluatePathToObject(loop.getCollectionJsonPath());
             } catch (ClassCastException e) {
-                throw new JebtEvaluationException("Object found at "+loop.getCollectionJsonPath()+" is not a JsonArray", e);
+                throw new JebtEvaluationException("Object found at "+loop.getCollectionJsonPath()+" is not a List", e);
             }
 
             if (collection == null) {

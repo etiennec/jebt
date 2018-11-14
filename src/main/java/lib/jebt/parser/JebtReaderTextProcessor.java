@@ -164,8 +164,16 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
             boolean isLoopBreakerFound = false;
             Object loopedCollectionBean = null; // Must be array or list
             int loopedBeanIndex = 0;
-            while (!isLoopBreakerFound) {
-                String documentContent = tryToMatchLoopBreaker(documentReader, loopBreakerTextToMatch.toString());
+            JebtImprovedReader jebtDocumentReader = new JebtImprovedReader(documentReader);
+            while (!isLoopBreakerFound && jebtDocumentReader.hasNext()) {
+                String documentContent;
+                if ("".equals(loopBreakerTextToMatch.toString())) {
+                    // An empty loopBreakerTextToMatch means that the document finishes with the closing loop tag.
+                    // So we must match all remaining text with loop inner tokens until reaching end of document.
+                    documentContent = String.valueOf((char)jebtDocumentReader.read());
+                } else {
+                    documentContent = tryToMatchLoopBreaker(jebtDocumentReader, loopBreakerTextToMatch.toString());
+                }
 
                 if (documentContent == null) {
                     // We successfully matched the loopbreaker
@@ -205,7 +213,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
 
                 // If we haven't found the loop breaker, it means that we have to match the document to one element of the loop.
                 // We start by injecting what we've read from the document back into the reader.
-                documentReader = new ReaderWithTextAtTheBeginning(documentContent, documentReader);
+                jebtDocumentReader = new JebtImprovedReader(documentContent, jebtDocumentReader);
 
                 final List<Token> loopTokens = loopToken.getLoopTokens();
 
@@ -230,7 +238,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                 };
 
                 JebtReaderTextProcessor loopContentProcessor = new JebtReaderTextProcessor();
-                loopContentProcessor.extractData(tokenListTokenizer, documentReader, data);
+                loopContentProcessor.extractData(tokenListTokenizer, jebtDocumentReader, data);
 
                 // Now that parsing of one item has been completed we need to retrieve it, store it in data and clean the context
                 Object obj = data.get(loopToken.getLoopItemName());
@@ -245,11 +253,11 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
             Reader toMatchReader = new StringReader(templateToken.getText());
             int i;
             while ((i = toMatchReader.read()) != -1) {
-                int j = documentReader.read();
+                int j = (char)documentReader.read();
 
                 if (i != j) {
                     throw new RuntimeException(
-                            "Character mismatch between the template and the document : " + (char)i + " / " + (char)j);
+                            "Character mismatch between the template and the document : '" + (char)i + "' / '" + (char)j + "' for template text \""+templateToken.getText()+"\"");
                 }
             }
         } else {
@@ -282,7 +290,6 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                 }
 
                 int docChar = documentReader.read();
-                documentContent.append(((char)docChar));
 
                 if (docChar == -1) {
                     // we reached the end of the document before the end of the loop text;
@@ -291,6 +298,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                             "Reached the end of the document before we could find the loop breaker text: '"
                                     + loopBreakerTextToMatch + "'");
                 }
+                documentContent.append(((char)docChar));
 
                 if (docChar != loopTextChar) {
                     // No match!
@@ -356,20 +364,49 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
 
     }
 
-    private class ReaderWithTextAtTheBeginning extends Reader {
+    /**
+     * This reader class provides two features:
+     * - A constructor that allows to add back text at the beginning of an existing reader
+     * - a hasNext() method to check if the reader is at the end or not without calling read().
+     */
+    private class JebtImprovedReader extends Reader {
 
         private boolean hasReachedPrefixReaderEnd = false;
 
         private Reader prefixReader;
 
+        // -2 = nextChar not read.
+        private int nextChar = -2;
+
         private Reader documentReader;
 
-        public ReaderWithTextAtTheBeginning(String prefixString, Reader documentReader) {
+        public JebtImprovedReader(String prefixString, Reader documentReader) {
             this.prefixReader = new StringReader(prefixString);
             this.documentReader = documentReader;
         }
 
+        public JebtImprovedReader(Reader documentReader) {
+            this.prefixReader = null;
+            hasReachedPrefixReaderEnd = true;
+            this.documentReader = documentReader;
+        }
+
+        public boolean hasNext() throws IOException {
+            if (nextChar == -2) {
+                nextChar = read();
+            }
+
+            return nextChar != -1;
+        }
+
         @Override public int read(char[] cbuf, int off, int len) throws IOException {
+
+            if (nextChar != -2) {
+                StringReader buf = new StringReader(String.valueOf((char)nextChar));
+                nextChar = -2;
+                return buf.read(cbuf, off, len);
+            }
+
             if (!hasReachedPrefixReaderEnd) {
                 int value = prefixReader.read(cbuf, off, len);
                 if (value == -1) {
@@ -383,7 +420,9 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
         }
 
         @Override public void close() throws IOException {
-            prefixReader.close();
+            if (prefixReader != null) {
+                prefixReader.close();
+            }
             documentReader.close();
         }
     }
