@@ -40,7 +40,7 @@ public class JebtTextWriterTest
     private void testTxtTemplate(String templateFile, String documentFile, String jsonDataFile) throws Exception {
         System.out.println("## Testing XLSX Writer template name " + templateFile);
 
-        Map data = (Map)new JSONParser().parse(TestUtils.getFileReader("/xlsx/"+jsonDataFile), new ContainerFactory() {
+        Map data = (Map)new JSONParser().parse(TestUtils.getFileReader("/txt/"+jsonDataFile), new ContainerFactory() {
             @Override public Map createObjectContainer() {
                 return new LinkedHashMap();
             }
@@ -50,7 +50,7 @@ public class JebtTextWriterTest
             }
         });
 
-        Reader templateReader = TestUtils.getFileReader("/xlsx/"+templateFile);
+        Reader templateReader = TestUtils.getFileReader("/txt/"+templateFile);
 
         StringWriter output = new StringWriter();
 

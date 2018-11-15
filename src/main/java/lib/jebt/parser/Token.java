@@ -1,7 +1,8 @@
 package lib.jebt.parser;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.xssf.usermodel.XSSFCell;
+
 
 /**
  * Represents one token read while going through a Jebt template.
@@ -20,7 +21,7 @@ public class Token {
         this.text = text;
     }
 
-    public Token(XSSFCell cell) {
+    public Token(Cell cell) {
 
         if (cell == null) {
             this.type = TokenType.NEW_NON_TEXT_CELL;
@@ -40,7 +41,7 @@ public class Token {
 
     private TokenType type;
     private String text;
-    private XSSFCell cell;
+    private Cell cell;
 
     public TokenType getType() {
         return type;
@@ -50,7 +51,7 @@ public class Token {
         return text;
     }
 
-    public XSSFCell getCell() {
+    public Cell getCell() {
         return cell;
     }
 

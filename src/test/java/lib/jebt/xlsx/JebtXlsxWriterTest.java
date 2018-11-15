@@ -59,9 +59,9 @@ public class JebtXlsxWriterTest extends BaseJebtXlsxTest
             }
         });
 
-        XSSFWorkbook wb = getWorkbook("/xlsx/"+templateFile);
+        XSSFWorkbook wb = getXSSFWorkbook("/xlsx/"+templateFile);
 
-        XSSFWorkbook wbCopy = getWorkbook("/xlsx/"+templateFile);
+        XSSFWorkbook wbCopy = getXSSFWorkbook("/xlsx/"+templateFile);
 
         OutputStream docOS = TestUtils.getOutputStream("/xlsx/output/out_"+documentFile);
 

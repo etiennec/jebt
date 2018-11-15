@@ -4,10 +4,7 @@ import lib.jebt.BaseJebtWriter;
 import lib.jebt.JebtWriter;
 import lib.jebt.parser.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.RichTextString;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.streaming.SXSSFCell;
@@ -226,12 +223,8 @@ public class JebtXlsxWriter extends BaseJebtWriter {
      * Copies cell contents from source to target, and resolves any token in cell's text in the process.
      * SXSSF doesn't support RichTextString, so we'll discard any text-part specific font, and will rely on Cell style only for formatting.
      */
-    private void processTextCell(XSSFCell sourceCell, SXSSFCell targetCell, Map data) {
-
-        XSSFRichTextString source = sourceCell.getRichStringCellValue();
-
-        String sourceStr = source.getString();
-
+    private void processTextCell(Cell sourceCell, SXSSFCell targetCell, Map data) {
+        String sourceStr = sourceCell.getRichStringCellValue().getString();
         targetCell.setCellValue(convertString(sourceStr, data));
     }
 

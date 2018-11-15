@@ -2,19 +2,20 @@ package lib.jebt.parser;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Comment;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFComment;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 
 /**
  * Tokenizer for one XLSX Sheet. The last token will be Token.EOD.
+ *
+ * We cannot read tokens with excel-streaming-reader because it cannot read cell comments, where we store loop information.
+ * But it's not a problem, template files shouldn't be too large.
  */
 public class JebtXlsxTokenizer implements JebtTokenizer {
 
@@ -24,7 +25,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
 
     private int columnIndex = -1;
 
-    private XSSFSheet sheet = null;
+    private Sheet sheet = null;
 
     private int maxRowIndex = -1;
 
@@ -34,11 +35,11 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
 
     boolean eodReturned = false;
 
-    public JebtXlsxTokenizer(XSSFSheet sheet) {
+    public JebtXlsxTokenizer(Sheet sheet) {
         this(sheet, -1, -1);
     }
 
-    private JebtXlsxTokenizer(XSSFSheet sheet, int rowIndex, int columnIndex) {
+    private JebtXlsxTokenizer(Sheet sheet, int rowIndex, int columnIndex) {
         this.rowIndex = rowIndex;
         this.columnIndex = columnIndex;
         this.sheet = sheet;
@@ -64,7 +65,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
         if (rowIndex >= 0 && columnIndex >= -1 && columnIndex < currentRowMaxColumnIndex) {
             // process next cell
             columnIndex++;
-            XSSFCell cell = (XSSFCell)sheet.getRow(rowIndex).getCell(columnIndex);
+            Cell cell = sheet.getRow(rowIndex).getCell(columnIndex);
 
             // Opening any loop
             while (checkStartLoop(cell)) {
@@ -96,7 +97,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
 
         // Go to next row
         rowIndex++;
-        XSSFRow row = sheet.getRow(rowIndex);
+        Row row = sheet.getRow(rowIndex);
         currentRowMaxColumnIndex = row == null ? -1 : row.getLastCellNum();
         addToken(new Token(Token.TokenType.NEW_ROW, null));
         columnIndex = -1;
@@ -107,13 +108,13 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
     /**
      * @return true if the cell contained a loop closing statement in its comments (and the currently opened loop was closed), false otherwise
      */
-    private boolean checkEndLoop(XSSFCell cell) {
+    private boolean checkEndLoop(Cell cell) {
 
         if (cell == null) {
             return false;
         }
 
-        XSSFComment comment = cell.getCellComment();
+        Comment comment = cell.getCellComment();
         if (comment == null || comment.getString() == null || StringUtils.isBlank(comment.getString().toString())) {
             return false;
         }
@@ -143,7 +144,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
                     }
 
                     // We remove closing tag from comment
-                    cell.getCellComment().setString(commentStr.substring(commentStr.indexOf("]}") + 2));
+                    cell.getCellComment().setString(new XSSFRichTextString(commentStr.substring(commentStr.indexOf("]}") + 2)));
 
                     // We effectively close the loop tag
                     loopStack.pop();
@@ -164,13 +165,13 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
     /**
      * @return true if the cell comments starts with a loop opening tag (and has started the loop if that's ths case), false otherwise.
      */
-    private boolean checkStartLoop(XSSFCell cell) {
+    private boolean checkStartLoop(Cell cell) {
 
         if (cell == null) {
             return false;
         }
 
-        XSSFComment comment = cell.getCellComment();
+        Comment comment = cell.getCellComment();
         if (comment == null || comment.getString() == null || StringUtils.isBlank(comment.getString().toString())) {
             return false;
         }
@@ -189,7 +190,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
                     loopStack.push(startLoop);
 
                     // We remove opening tag from comment as it's been processed
-                    cell.getCellComment().setString(commentStr.substring(commentStr.indexOf("]}") + 2));
+                    cell.getCellComment().setString(new XSSFRichTextString(commentStr.substring(commentStr.indexOf("]}") + 2)));
 
                     return true;
                 } else {
