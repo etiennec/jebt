@@ -98,7 +98,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
         // Go to next row
         rowIndex++;
         Row row = sheet.getRow(rowIndex);
-        currentRowMaxColumnIndex = row == null ? -1 : row.getLastCellNum();
+        currentRowMaxColumnIndex = row == null ? -1 : (row.getLastCellNum()-1);
         addToken(new Token(Token.TokenType.NEW_ROW, null));
         columnIndex = -1;
 
