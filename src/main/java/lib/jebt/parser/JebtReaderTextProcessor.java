@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * Class in charge of processing raw text with Jebt Template elements in it, and generate data back from a text file.
  */
-public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
+public class JebtReaderTextProcessor {
 
     /**
      * This value sets an approximate text length to match with template text before deciding that the expression value is correctly matched.
@@ -106,7 +106,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                     char c = (char)i;
                     value.append(c);
                 }
-                updateData(expression, value.toString(), data);
+                ParsingUtils.updateData(expression, value.toString(), data);
                 // We reached the end!
                 return true;
             }
@@ -138,7 +138,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                 }
             }
 
-            updateData(expression, value.toString(), data);
+            ParsingUtils.updateData(expression, value.toString(), data);
         } else if (templateToken.getType() == Token.TokenType.LOOP) {
             // LOOP: We have to match the document with the loop inner contents, and detect when we go out of the loop.
             final JebtTextTokenizer.LoopToken loopToken = (JebtTextTokenizer.LoopToken)templateToken;
@@ -162,7 +162,6 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
             // We now read text from the document and decide whether we're looking at a loop breaker (i.e. we have exited the loop) or not (we are parsing contents of the loop).
             // We cannot greedily read the document until we reach the loop breaker, because this content could be too large to fit into memory.
             boolean isLoopBreakerFound = false;
-            Object loopedCollectionBean = null; // Must be array or list
             int loopedBeanIndex = 0;
             JebtImprovedReader jebtDocumentReader = new JebtImprovedReader(documentReader);
             while (!isLoopBreakerFound && jebtDocumentReader.hasNext()) {
@@ -181,35 +180,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                     continue;
                 }
 
-                if (loopedCollectionBean == null) {
-                    loopedCollectionBean =
-                            new JsonPathResolver(data).evaluatePathToObject(loopToken.getCollectionJsonPath());
-                    if (loopedCollectionBean == null) {
-                        loopedCollectionBean = new JSONArray();
-                        updateData(loopToken.getCollectionJsonPath(), loopedCollectionBean, data);
-                    }
-                    if (!(loopedCollectionBean instanceof List)) {
-                        throw new JebtEvaluationException(
-                                "Looped object " + loopToken.getCollectionJsonPath() + " should be a list but it's a "
-                                        + loopedCollectionBean.getClass().toString());
-                    }
-                }
-
-                Object loopedItem = null;
-
-                List loopedCollectionJSONArray = (List)loopedCollectionBean;
-                while (loopedCollectionJSONArray.size() <= loopedBeanIndex) {
-                    // The list is not large enough, we have to add more data to it.
-                    loopedCollectionJSONArray.add(null);
-                }
-                loopedItem = loopedCollectionJSONArray.get(loopedBeanIndex);
-                if (loopedItem == null) {
-                    loopedItem = new LinkedHashMap();
-                    loopedCollectionJSONArray.set(loopedBeanIndex, loopedItem);
-                }
-
-                // We now put the object at the root of the data to make it available to context.
-                data.put(loopToken.getLoopItemName(), loopedItem);
+                List loopedCollectionList = ParsingUtils.initCollection(data, loopToken.getCollectionJsonPath(), loopedBeanIndex, loopToken.getLoopItemName());
 
                 // If we haven't found the loop breaker, it means that we have to match the document to one element of the loop.
                 // We start by injecting what we've read from the document back into the reader.
@@ -242,7 +213,7 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
 
                 // Now that parsing of one item has been completed we need to retrieve it, store it in data and clean the context
                 Object obj = data.get(loopToken.getLoopItemName());
-                loopedCollectionJSONArray.set(loopedBeanIndex, obj);
+                loopedCollectionList.set(loopedBeanIndex, obj);
                 data.remove(loopToken.getLoopItemName());
 
                 loopedBeanIndex++;
@@ -308,57 +279,6 @@ public class JebtReaderTextProcessor extends JebtCommonTextProcessor {
                 // By then we have both character matching, so we continue reading.
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    /**
-     * Update the entry at the given path to the given value.
-     *
-     * @param jsonPath
-     * @param value
-     * @param data
-     */
-    private void updateData(String jsonPath, Object value, Map data) {
-
-        if (StringUtils.isBlank(jsonPath)) {
-            return;
-        }
-
-        List<AtomicExpression> atomicExprs = AtomicExpression.extractAtomicExpressions(jsonPath);
-
-        // We keep the last expression to assign instead of "get".
-        AtomicExpression lastExpression = atomicExprs.remove(atomicExprs.size() - 1);
-
-        Object obj = data;
-
-        try {
-
-            // climb up the expression ladder until the very last expression, instantiating null objects as we go up.
-            for (int i = 0; i < atomicExprs.size(); i++) {
-                AtomicExpression atomicExpr = atomicExprs.get(i);
-                Object childBean = atomicExpr.resolve(obj, data);
-                if (childBean == null) {
-                    // We instantiate a new Child bean, either a Map or an ArrayList depending on the following token
-                    AtomicExpression nextAtomicExpr =
-                            i + 1 < atomicExprs.size() ? atomicExprs.get(i + 1) : lastExpression;
-                    if (nextAtomicExpr.isExprOnArray()) {
-                        // JSon Array
-                        childBean = new ArrayList();
-                    } else {
-                        // JSon Object.
-                        childBean = new LinkedHashMap();
-                    }
-                    atomicExpr.setValue(obj, childBean, data);
-                }
-                obj = childBean;
-            }
-
-            // Use the very last expression to assign the value.
-            lastExpression.setValue(obj, value, data);
-
-        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 

@@ -50,7 +50,7 @@ public abstract class AtomicExpression {
             return Boolean.FALSE;
         }
         try {
-            return new Integer(Integer.parseInt(s));
+            return new Long(Long.parseLong(s));
         } catch (NumberFormatException e) {
             // Ignore.
         }

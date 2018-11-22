@@ -43,18 +43,18 @@ public class SheetReaderTest extends BaseJebtXlsxTest {
         assertEquals(tokens.get(6).getType(), Token.TokenType.NEW_ROW);
         assertEquals(tokens.get(7).getType(), Token.TokenType.NEW_TEXT_CELL);
         assertEquals(tokens.get(8).getType(), Token.TokenType.NEW_ROW);
-        assertEquals(tokens.get(9).getType(), Token.TokenType.NEW_NON_TEXT_CELL);
+        assertEquals(tokens.get(9).getType(), Token.TokenType.NEW_BLANK_CELL);
         assertEquals(tokens.get(10).getType(), Token.TokenType.NEW_TEXT_CELL);
-        assertEquals(tokens.get(11).getType(), Token.TokenType.NEW_ROW);
+        assertEquals(tokens.get(11).getType(), Token.TokenType.NEW_BLANK_ROW);
         assertEquals(tokens.get(12).getType(), Token.TokenType.NEW_ROW);
         assertEquals(tokens.get(13).getType(), Token.TokenType.NEW_TEXT_CELL);
-        assertEquals(tokens.get(14).getType(), Token.TokenType.NEW_ROW);
+        assertEquals(tokens.get(14).getType(), Token.TokenType.NEW_BLANK_ROW);
         assertEquals(tokens.get(15).getType(), Token.TokenType.NEW_ROW);
-        assertEquals(tokens.get(16).getType(), Token.TokenType.NEW_NON_TEXT_CELL);
-        assertEquals(tokens.get(17).getType(), Token.TokenType.NEW_NON_TEXT_CELL);
-        assertEquals(tokens.get(18).getType(), Token.TokenType.NEW_NON_TEXT_CELL);
-        assertEquals(tokens.get(19).getType(), Token.TokenType.NEW_NON_TEXT_CELL);
-        assertEquals(tokens.get(20).getType(), Token.TokenType.NEW_NON_TEXT_CELL);
+        assertEquals(tokens.get(16).getType(), Token.TokenType.NEW_BLANK_CELL);
+        assertEquals(tokens.get(17).getType(), Token.TokenType.NEW_BLANK_CELL);
+        assertEquals(tokens.get(18).getType(), Token.TokenType.NEW_BLANK_CELL);
+        assertEquals(tokens.get(19).getType(), Token.TokenType.NEW_BLANK_CELL);
+        assertEquals(tokens.get(20).getType(), Token.TokenType.NEW_BLANK_CELL);
         assertEquals(tokens.get(21).getType(), Token.TokenType.NEW_TEXT_CELL);
 
 

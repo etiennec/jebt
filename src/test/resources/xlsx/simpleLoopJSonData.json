@@ -1,0 +1,14 @@
+{
+	"stringName": "World",
+	"customers": [{
+			"name": "Customer 1",
+			"country": "China"
+		}, {
+			"name": "Customer 2",
+			"country": "Japan"
+		}, {
+			"name": "Customer 3",
+			"country": "Korea"
+		}
+	]
+}

@@ -5,7 +5,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * This class will read an Excel Sheet row by row and cell by cell, always forward, just like a tokenizer except it doesn't care about loops and comments as it's using excel-streaming-reader.
@@ -13,6 +13,8 @@ import java.util.Iterator;
  * It will only return NEW_NON_TEXT_CELL, NEW_TEXT_CELL, EOD and NEW_ROW tokens. No EXPRESSION, no LOOP, no TEXT.
  */
 public class SheetReader {
+
+    private Deque<Token> injectedTokens = new LinkedList<>();
 
     private Iterator<Row> rowIterator;
 
@@ -24,6 +26,8 @@ public class SheetReader {
 
     private int expectedColumnIndex = -1;
 
+    private boolean isFirstCell = true;
+
     private Iterator<Cell> cellIterator;
 
     public SheetReader(Sheet docSheet) {
@@ -31,7 +35,75 @@ public class SheetReader {
         expectedRowIndex = 0;
     }
 
+    /**
+     * This constructor is used to read an existing list of tokens.
+     */
+    public SheetReader(List<Token> tokens) {
+        rowIterator = null;
+        expectedRowIndex = 0;
+        reinjectTokens(tokens);
+    }
+
+    /**
+     * Reinjected tokens will be returned again by this reader as if they were read for the first time.
+     * The first item of the lastly injected collection will be returned next.
+     */
+    public void reinjectTokens(Collection<Token> tokens) {
+        Stack<Token> stack = new Stack<>();
+        for (Token t : tokens) {
+            stack.add(t);
+        }
+
+        while (!stack.empty()) {
+            injectedTokens.addFirst(stack.pop());
+        }
+    }
+
+    /**
+     * Reinjected tokens will be returned again by this reader as if they were read for the first time.
+     * If this method is called multiple times, the lastly injected token will be returned first upon following read.
+     */
+    public void reinjectToken(Token token) {
+            injectedTokens.addFirst(token);
+    }
+
     public Token readNext() {
+
+        // We don't want to return NEW_BLANK_CELL if the whole line is blank, instead we'll return NEW_BLANK_ROW
+
+        Token t = doReadToken();
+
+        if (t.getType() == Token.TokenType.NEW_ROW) {
+            // Let's read following cells, if they are all NEW_BLANK_CELL until next NEW row, this is a NEW_BLANK_ROW.
+            List<Token> rowCells = new ArrayList<>();
+            boolean hasOnlyBlankCells = true;
+            do {
+                Token rowToken = doReadToken();
+                rowCells.add(rowToken);
+                if (rowToken.getType() == Token.TokenType.NEW_ROW || rowToken == Token.EOD) {
+                    // We only had blank cells until now, so this is a blank row instead of a new row.
+                    // We ignore any blank cell already read and only reinject the NEW_ROW token.
+                    reinjectToken(rowToken);
+                    return new Token(Token.TokenType.NEW_BLANK_ROW, null);
+                } else if (rowToken.getType() == Token.TokenType.NEW_BLANK_CELL) {
+                    // this is a blank cell, so let's continue.
+                    continue;
+                } else {
+                    // Not an empty cell, so this is a normal NEW_ROW.
+                    reinjectTokens(rowCells);
+                    return t;
+                }
+
+            } while (true);
+        }
+
+        return t;
+    }
+
+    private Token doReadToken() {
+        if (!injectedTokens.isEmpty()) {
+            return injectedTokens.remove();
+        }
 
         // We read the next cell if there's a next cell to return.
 

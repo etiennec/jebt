@@ -29,6 +29,9 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
 
     private int maxRowIndex = -1;
 
+    // When on a blank row, we skip all cells and go straight to next row.
+    private boolean isOnBlankRow = false;
+
     private int currentRowMaxColumnIndex = -1;
 
     private Stack<JebtTextTokenizer.LoopToken> loopStack = new Stack<JebtTextTokenizer.LoopToken>();
@@ -62,7 +65,7 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
         }
 
         // Is there a next cell to read?
-        if (rowIndex >= 0 && columnIndex >= -1 && columnIndex < currentRowMaxColumnIndex) {
+        if (!isOnBlankRow && rowIndex >= 0 && columnIndex >= -1 && columnIndex < currentRowMaxColumnIndex) {
             // process next cell
             columnIndex++;
             Cell cell = sheet.getRow(rowIndex).getCell(columnIndex);
@@ -99,10 +102,34 @@ public class JebtXlsxTokenizer implements JebtTokenizer {
         rowIndex++;
         Row row = sheet.getRow(rowIndex);
         currentRowMaxColumnIndex = row == null ? -1 : (row.getLastCellNum()-1);
-        addToken(new Token(Token.TokenType.NEW_ROW, null));
+        if (isEmptyRow(row)) {
+            addToken(new Token(Token.TokenType.NEW_BLANK_ROW, null));
+            isOnBlankRow = true;
+        } else {
+            addToken(new Token(Token.TokenType.NEW_ROW, null));
+            isOnBlankRow = false;
+        }
         columnIndex = -1;
 
         return;
+    }
+
+    /**
+     * An empty row has no cell or has only empty cells as defined by Token.TokenType.NEW_BLANK_CELL.
+     */
+    private boolean isEmptyRow(Row row) {
+        if (row == null) {
+            return true;
+        }
+
+        for (Cell cell : row) {
+            Token t = new Token(cell);
+            if (t.getType() != Token.TokenType.NEW_BLANK_CELL) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

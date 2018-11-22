@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Class in charge of processing raw text with Jebt Template elements in it to turned it into filled text document
  */
-public class JebtWriterTextProcessor extends JebtCommonTextProcessor {
+public class JebtWriterTextProcessor {
 
     /**
      * @param sourceText A reader that reads template text.

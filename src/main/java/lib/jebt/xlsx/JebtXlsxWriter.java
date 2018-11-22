@@ -100,8 +100,8 @@ public class JebtXlsxWriter extends BaseJebtWriter {
 
         SXSSFSheet sheet = targetSheetContext.getSheet();
 
-        // While filling Excel sheet, tokens are either NEW_CELL or NEW_ROW (or LOOP).
-        if (t.getType() == Token.TokenType.NEW_ROW) {
+        // While filling Excel sheet, tokens are either NEW_TEXT_CELL, NEW_NON_TEXT_CELL, NEW_BLANK_CELL, NEW_BLANK_ROW or NEW_ROW (or LOOP).
+        if (t.getType() == Token.TokenType.NEW_ROW || t.getType() == Token.TokenType.NEW_BLANK_ROW) {
             // We go to the next row, and create it if it doesn't already exist.
             targetSheetContext.rowId++;
             // We reinitialize Column Index too
@@ -111,7 +111,7 @@ public class JebtXlsxWriter extends BaseJebtWriter {
                 row = sheet.createRow(targetSheetContext.rowId);
             }
 
-        } else if (t.getType() == Token.TokenType.NEW_NON_TEXT_CELL) {
+        } else if (t.getType() == Token.TokenType.NEW_NON_TEXT_CELL || t.getType() == Token.TokenType.NEW_BLANK_CELL) {
             // We just copy the cell and its contents to the destination sheet.
             SXSSFCell cell = initCellCopy(t, targetSheetContext, data);
 
@@ -125,6 +125,10 @@ public class JebtXlsxWriter extends BaseJebtWriter {
                 case _NONE:
                     break;
                 case BLANK:
+                    break;
+                case STRING:
+                    // A String cell here can only be blank, i.e. contain empty string.
+                    cell.setCellValue("");
                     break;
                 case BOOLEAN:
                     cell.setCellValue(t.getCell().getBooleanCellValue());
