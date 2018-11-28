@@ -377,8 +377,8 @@ public class JebtXlsxReader extends BaseJebtReader {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                     strCellValue = dateFormat.format(cell.getDateCellValue());
                 } else {
-                    Double value = cell.getNumericCellValue();
-                    strCellValue = value.toString();
+                    // Double value = cell.getNumericCellValue(); // Doing so will turn integer into double by adding .0 at the end, we don't want that.
+                    strCellValue = cell.getStringCellValue();
                 }
             } else if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
                 strCellValue = new Boolean(cell.getBooleanCellValue()).toString();
