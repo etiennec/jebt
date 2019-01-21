@@ -229,7 +229,36 @@ public class JebtXlsxWriter extends BaseJebtWriter {
      */
     private void processTextCell(Cell sourceCell, SXSSFCell targetCell, Map data) {
         String sourceStr = sourceCell.getRichStringCellValue().getString();
-        targetCell.setCellValue(convertString(sourceStr, data));
+        String targetStr = escapeExcelInjection(sourceStr, convertString(sourceStr, data));
+
+        targetCell.setCellValue(targetStr);
+    }
+
+    /**
+     * An excel injection can occur if a user passes a string with a malicious content, such as
+     * =SUM(1+1)*cmd|' /C calc'!A0
+     * When we detect this, we escape the string with a single quote.
+     * We don't exepect anyone to pass to such a formula in a normal text label, so that protection will suffice for now.
+     * Later we might want to consider using Apache POI setQuotePrefixed(boolean) on CellStyle.
+     */
+    private String escapeExcelInjection(String sourceStr, String evaluatedStr) {
+        if (sourceStr == null || evaluatedStr == null) {
+            // Should never happen.
+            return evaluatedStr;
+        }
+
+        if (sourceStr.equals(evaluatedStr)) {
+            // Nothing was changed
+            return evaluatedStr;
+        }
+
+        if (sourceStr.startsWith("{{") && !"".equals(evaluatedStr) && "=-+@".indexOf(evaluatedStr.charAt(0)) >= 0) {
+            // Escaping any generated value starting with =-+@ with a starting quote.
+            return "'" + evaluatedStr;
+        }
+
+        return evaluatedStr;
+
     }
 
     private class SheetContext {
